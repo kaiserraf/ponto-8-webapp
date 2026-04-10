@@ -1,9 +1,15 @@
 import {Request, Response} from 'express';
+import * as cs from '../services/clientService';
 
 // listar cliente
 export const getClient = async (req:Request, res:Response) => {
+    const response = await cs.listClient();
     
 };
+
+export const getClientById = async (req:Request, res:Response) => {
+    
+}
 
 // cadastrar cliente
 export const postClient = async (req:Request, res:Response) => {

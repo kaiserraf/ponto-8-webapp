@@ -1,0 +1,1 @@
+import * as vd from '../repositories/vehicleData';
