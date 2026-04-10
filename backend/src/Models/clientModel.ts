@@ -7,5 +7,5 @@ export interface ClientModel {
     phone: number
     cpf: string,
     email: string,
-    vehicle?: VehicleModel[]
+    vehicles?: VehicleModel[]
 }

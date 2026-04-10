@@ -1,8 +1,14 @@
 import * as cd from "../repositories/clientData";
+import * as hr from '../utils/http';
 
 export const listClient = async () => {
-    // const data que vai chamar a função de encontrar os players
     const data = await cd.findClients();
-    // se: tiver retorna os usuarios
-    // senão: retorna nada + noContent
+    let response = null;
+    if(data){
+        response = await hr.ok(data);
+    }else{
+        response = await hr.noContent();
+    }
+
+    return response;
 }

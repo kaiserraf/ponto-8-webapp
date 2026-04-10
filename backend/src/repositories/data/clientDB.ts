@@ -1,6 +1,6 @@
 import { ClientModel } from "../../Models/clientModel";
 
-const database: ClientModel[] = [
+const databaseClient: ClientModel[] = [
     {
         id: 1,
         name: "João Silva",
@@ -95,4 +95,4 @@ const database: ClientModel[] = [
     },
 ];
 
-export default database;
+export default databaseClient;

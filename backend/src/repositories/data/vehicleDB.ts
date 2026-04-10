@@ -1,6 +1,6 @@
 import { VehicleModel } from "../../Models/vehicleModel";
 
-const database: VehicleModel[] = [
+const databaseVehicle: VehicleModel[] = [
     { idVehicle: 1, vehicleModel: "Civic", vehicleBrand: "Honda", year: 2021, chassi: "9BWZZZ377VT004251", plate: "ABC-1234", cliendId: 1 },
     { idVehicle: 2, vehicleModel: "HRV", vehicleBrand: "Honda", year: 2022, chassi: "9BWZZZ377VT004252", plate: "DEF-5678", cliendId: 1 },
     { idVehicle: 3, vehicleModel: "Corolla", vehicleBrand: "Toyota", year: 2020, chassi: "9BWZZZ377VT004253", plate: "GHI-9012", cliendId: 2 },
@@ -15,4 +15,4 @@ const database: VehicleModel[] = [
     { idVehicle: 12, vehicleModel: "Fastback", vehicleBrand: "Fiat", year: 2021, chassi: "9BWZZZ377VT004262", plate: "HIJ-5678", cliendId: 8 },
 ];
 
-export default database;
+export default databaseVehicle;

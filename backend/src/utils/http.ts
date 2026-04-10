@@ -1,8 +1,8 @@
 import {HttpResponse} from '../Models/httpModel';
 
 // --- 2xx Success ---
-export const ok = async (): Promise<HttpResponse> => {
-    return { status: 200, body: null };
+export const ok = async (data: any): Promise<HttpResponse> => {
+    return { status: 200, body: data };
 }
 export const created = async (data: any = null): Promise<HttpResponse> => {
     return { status: 201, body: null };
