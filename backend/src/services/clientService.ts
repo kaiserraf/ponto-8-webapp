@@ -1,7 +1,8 @@
+import { ClientModel } from "../Models/clientModel";
 import * as cd from "../repositories/clientData";
 import * as hr from '../utils/http';
 
-export const listClient = async () => {
+export const listClientService = async () => {
     const data = await cd.findClients();
     let response = null;
     if(data){
@@ -10,5 +11,29 @@ export const listClient = async () => {
         response = await hr.noContent();
     }
 
+    return response;
+}
+
+export const getClientByNameService = async (name:string) => {
+    const data = await cd.findClientsByName(name);
+    let response = null;
+    if(data){
+        response = await hr.ok(data);
+    }else{
+        response = await hr.noContent();
+    }
+
+    return response;
+}
+
+export const createClientService = async (client:ClientModel) => {
+    let response = null;
+
+    if(Object.keys(client).length !== 0){
+        response = await cd.insertClient(client);
+    }else{
+        response = await hr.badRequest();
+    }
+    
     return response;
 }
