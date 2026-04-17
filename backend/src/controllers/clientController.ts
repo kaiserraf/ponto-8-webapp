@@ -17,10 +17,8 @@ export const getClientByName = async (req:Request, res:Response) => {
 export const postClient = async (req:Request, res:Response) => {
     const bodyValue = req.body;
     const httpResponse = await cs.createClientService(bodyValue);
-    
-    console.log(httpResponse);
 
-    if(httpResponse){
+    if(httpResponse  && 'status' in httpResponse){
         res.status(httpResponse.status).json(httpResponse.body);
     }else{
         const response = await badRequest();
