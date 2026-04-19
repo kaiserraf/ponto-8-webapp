@@ -32,9 +32,49 @@ export const insertClient = async (client:ClientModel):Promise<ClientModel> => {
 }
 
 // atualizar cliente
-export const updateClient = async (id:number): Promise<ClientModel | null> => {
+export const updateClient = async (id:number, bodyValue:Partial<{
+    name: string,
+    address: string,
+    phone: string
+    cpf: string,
+    email: string
+    }>
+) => {
+    const field: string[] = [];
+    const value: unknown[] = [];
+    let count = 1;
+
+    if(bodyValue.name !== undefined){
+        field.push(`name = $${count++}`);
+        value.push(bodyValue.name);
+    }
+    if(bodyValue.address !== undefined){
+        field.push(`address = $${count++}`);
+        value.push(bodyValue.address);
+    }
+    if(bodyValue.phone !== undefined){
+        field.push(`phone = $${count++}`);
+        value.push(bodyValue.phone);
+    }
+    if(bodyValue.cpf !== undefined){
+        field.push(`cpf = $${count++}`);
+        value.push(bodyValue.cpf);
+    }
+    if(bodyValue.email !== undefined){
+        field.push(`email = $${count++}`);
+        value.push(bodyValue.email);
+    }
+
+    if(field.length === 0) return null;
+
+    value.push(id);
+
+    const result = await pool.query<ClientModel>(
+        `UPDATE client SET ${field.join(',')} WHERE id $${count} RETURNING id, name, address, phone, cpf, email`,
+        value
+    );
     
-    return null;
+    return result;
 }
 
 // deletar cliente

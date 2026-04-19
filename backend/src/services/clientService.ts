@@ -39,31 +39,10 @@ export const createClientService = async (client:ClientModel) => {
     return response;
 }
 
-export const updateClientService = async (id:number, bodyValue:Partial<{
-    name: string,
-    address: string,
-    phone: string
-    cpf: string,
-    email: string,
-}>) => {
-    const field: string[] = [];
-    const value: unknown[] = [];
-    let count = 1;
-    if(bodyValue.name !== null){
-
-    }
-    if(bodyValue.address !== null){
-        
-    }
-    if(bodyValue.phone !== null){
-        
-    }
-    if(bodyValue.cpf !== null){
-        
-    }
-    if(bodyValue.email !== null){
-        
-    }
+export const updateClientService = async (id:number, bodyValue:ClientModel) => {   
+    const data = await cd.updateClient(id, bodyValue);
+    const response = await hr.ok(data);
+    return response;
 }
 
 export const deleteClientService = async (id:number) => {
