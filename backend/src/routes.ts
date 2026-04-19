@@ -8,7 +8,7 @@ router.get('/clients/:name', clientController.getClientByName); // filtra client
 
 router.post('/clients/post', clientController.postClient); // cadastro de clientes
 
-// router.patch('/clients/update/:id', clientController.updateClient); // atualizar clientes
+router.patch('/clients/update/:id', clientController.updateClient); // atualizar clientes
 
 router.delete('/clients/:id', clientController.deleteClient);
 

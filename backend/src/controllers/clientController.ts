@@ -1,6 +1,7 @@
 import {Request, Response} from 'express';
 import * as cs from '../services/clientService';
 import { badRequest } from '../utils/http';
+import { ClientModel } from '../Models/clientModel';
 
 // listar cliente
 export const getClient = async (req:Request, res:Response) => {
@@ -25,13 +26,14 @@ export const postClient = async (req:Request, res:Response) => {
         res.status(response.status).json(response.body);
     }
 }
-/*
+
 // atulizar Cliente
 export const updateClient = async (req:Request, res:Response) => {
     const id = parseInt(req.params.id as string);
-    const httpResponse = await cs.updateClientService(id);
+    const bodyValue:ClientModel = req.body;
+    const httpResponse = await cs.updateClientService(id, bodyValue);
     // res.status(httpResponse.status).json(httpResponse.body);
-}*/
+}
 
 // deletar cliente
 export const deleteClient = async (req:Request, res:Response) => {
