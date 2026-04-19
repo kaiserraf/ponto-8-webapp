@@ -20,17 +20,18 @@ export const getClientByNameService = async (name:string) => {
     if(data){
         response = await hr.ok(data);
     }else{
-        response = await hr.noContent();
+        response = await hr.noContent();    
     }
 
     return response;
 }
 
 export const createClientService = async (client:ClientModel) => {
+    const data = await cd.insertClient(client);
     let response = null;
 
-    if(Object.keys(client).length !== 0){
-        response = await cd.insertClient(client);
+    if(data){
+        response = await hr.created(data);
     }else{
         response = await hr.badRequest();
     }

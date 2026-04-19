@@ -13,7 +13,7 @@ const pool = new Pool({
 
 
 pool.on('connect', () => {
-    console.log('conectado');
+    console.log('conectado ao banco de dados');
 })
 
 pool.on('error', (err) =>{

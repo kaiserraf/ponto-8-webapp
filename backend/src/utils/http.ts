@@ -5,7 +5,7 @@ export const ok = async (data: any): Promise<HttpResponse> => {
     return { status: 200, body: data };
 }
 export const created = async (data: any = null): Promise<HttpResponse> => {
-    return { status: 201, body: null };
+    return { status: 201, body: data };
 }
 
 export const noContent = async (): Promise<HttpResponse> => {
