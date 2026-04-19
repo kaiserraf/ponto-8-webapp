@@ -12,8 +12,8 @@ export const findClients = async ():Promise<ClientModel[]> => {
 // encontrar cliente pelo nome
 export const findClientsByName = async (name:string):Promise<ClientModel | null> => {
     const result = await pool.query<ClientModel>(
-        `SELECT id, name, address, phone, cpf, email FROM clients WHERE name = $1`
-        // [name]
+        `SELECT id, name, address, phone, cpf, email FROM clients WHERE name = $1`,
+        [name]
     );
     return result.rows[0] ?? null;
 }
@@ -31,3 +31,20 @@ export const insertClient = async (client:ClientModel):Promise<ClientModel> => {
     return c;
 }
 
+// atualizar cliente
+export const updateClient = async (id:number): Promise<ClientModel | null> => {
+    
+    return null;
+}
+
+// deletar cliente
+export const deleteClient = async (id:number): Promise<ClientModel | null> => {
+    const result = await pool.query<ClientModel>(
+        `DELETE FROM clients
+        WHERE id = $1
+        RETURNING id, name, address, phone, cpf, email`,
+        [id]
+    );
+
+    return result.rows[0] ?? null;
+}

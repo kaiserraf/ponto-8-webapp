@@ -38,3 +38,23 @@ export const createClientService = async (client:ClientModel) => {
     
     return response;
 }
+/*
+export const updateClientService = async (id:number,
+    data: Partial<{
+        name: string,
+        address: string,
+        phone: string,
+        cpf: string,
+        email: string
+    }>
+) => {
+    const 
+}
+*/
+export const deleteClientService = async (id:number) => {
+    let response = null;
+    await cd.deleteClient(id);
+
+    response = await hr.ok({message: 'deleted'})
+    return response;
+}

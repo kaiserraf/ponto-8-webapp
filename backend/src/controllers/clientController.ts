@@ -25,13 +25,16 @@ export const postClient = async (req:Request, res:Response) => {
         res.status(response.status).json(response.body);
     }
 }
+/*
+// atulizar Cliente
+export const updateClient = async (req:Request, res:Response) => {
+    const id = parseInt(req.params.id as string);
+    const httpResponse = await cs.updateClientService(id);
+    // res.status(httpResponse.status).json(httpResponse.body);
+}*/
 
 // deletar cliente
 export const deleteClient = async (req:Request, res:Response) => {
-    
-}
-
-// atulizar Cliente
-export const updateClient = async (req:Request, res:Response) => {
-    
+    const id = parseInt(req.params.id as string);
+    const httpResponse = await cs.deleteClientService(id);
 }
