@@ -32,7 +32,7 @@ export const updateClient = async (req:Request, res:Response) => {
     const id = parseInt(req.params.id as string);
     const bodyValue:ClientModel = req.body;
     const httpResponse = await cs.updateClientService(id, bodyValue);
-    // res.status(httpResponse.status).json(httpResponse.body);
+    res.status(httpResponse.status).json(httpResponse.body);
 }
 
 // deletar cliente

@@ -70,11 +70,12 @@ export const updateClient = async (id:number, bodyValue:Partial<{
     value.push(id);
 
     const result = await pool.query<ClientModel>(
-        `UPDATE client SET ${field.join(',')} WHERE id $${count} RETURNING id, name, address, phone, cpf, email`,
+        `UPDATE clients SET ${field.join(',')} WHERE id = $${count}
+        RETURNING id, name, address, phone, cpf, email`,
         value
     );
     
-    return result;
+    return result.rows[0] ?? null;
 }
 
 // deletar cliente
