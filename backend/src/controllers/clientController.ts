@@ -37,4 +37,5 @@ export const updateClient = async (req:Request, res:Response) => {
 export const deleteClient = async (req:Request, res:Response) => {
     const id = parseInt(req.params.id as string);
     const httpResponse = await cs.deleteClientService(id);
+    res.status(httpResponse.status).json(httpResponse.body);
 }
