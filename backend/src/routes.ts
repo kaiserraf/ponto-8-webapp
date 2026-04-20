@@ -1,5 +1,7 @@
 import { Router } from "express";
 import * as clientController from "./controllers/clientController";
+import * as partController from "./controllers/partsController";
+
 
 const router = Router();
 
@@ -12,4 +14,5 @@ router.patch('/clients/update/:id', clientController.updateClient); // atualizar
 
 router.delete('/clients/:id', clientController.deleteClient);
 
+router.get('/parts', partController.getPart);
 export default router;

@@ -5,11 +5,9 @@ import * as hr from '../utils/http';
 export const listClientService = async () => {
     const data = await cd.findClients();
     let response = null;
-    if(data){
-        response = await hr.ok(data);
-    }else{
-        response = await hr.noContent();
-    }
+    
+    if(data) response = await hr.ok(data);
+    else response = await hr.noContent();
 
     return response;
 }
