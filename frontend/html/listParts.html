@@ -1,11 +1,311 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estoque de Peças</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Peças — Oficina</title>
+  <link rel="stylesheet" href="../css/style.css" />
 </head>
 <body>
-    
+
+<div class="shell">
+
+  <header class="topbar">
+    <span class="topbar__logo">OFICINA</span>
+    <span class="topbar__subtitle">Estoque de Peças</span>
+  </header>
+
+  <nav class="sidebar">
+    <span class="sidebar__section">Navegação</span>
+    <a href="home.html" class="nav-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Dashboard
+    </a>
+    <span class="sidebar__section">Cadastros</span>
+    <a href="listClient.html" class="nav-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Clientes
+    </a>
+    <a href="listVehicle.html" class="nav-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="1" y="3" width="15" height="13" rx="2"/>
+        <path d="M16 8h4l3 3v5h-7V8z"/>
+        <circle cx="5.5" cy="18.5" r="2.5"/>
+        <circle cx="18.5" cy="18.5" r="2.5"/>
+      </svg>
+      Veículos
+    </a>
+    <a href="listParts.html" class="nav-link active">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+      </svg>
+      Peças
+    </a>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">ES<span>TOQUE</span></h1>
+        <p class="page-meta" id="meta-count">Carregando...</p>
+      </div>
+      <button class="btn btn-primary" id="btn-new">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nova Peça
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="search-input" placeholder="Buscar peça..." />
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div id="table-wrap"><div class="spinner"></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL CRIAR -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title">NOVA PEÇA</h2>
+      <button class="modal__close" id="close-create">✕</button>
+    </div>
+    <form id="form-create" autocomplete="off">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="c-name">Nome da peça</label>
+          <input id="c-name" name="namePart" type="text" placeholder="Filtro de óleo" required />
+        </div>
+        <div class="form-group">
+          <label for="c-amount">Quantidade</label>
+          <input id="c-amount" name="amount" type="number" min="0" placeholder="0" required />
+        </div>
+        <div class="form-group">
+          <label for="c-buy">Valor de compra (R$)</label>
+          <input id="c-buy" name="buyValue" type="number" step="0.01" placeholder="0.00" required />
+        </div>
+        <div class="form-group">
+          <label for="c-sale">Valor de venda (R$)</label>
+          <input id="c-sale" name="saleValue" type="number" step="0.01" placeholder="0.00" required />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" id="cancel-create">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title">EDITAR PEÇA</h2>
+      <button class="modal__close" id="close-edit">✕</button>
+    </div>
+    <form id="form-edit" autocomplete="off">
+      <input type="hidden" id="e-id" />
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="e-name">Nome da peça</label>
+          <input id="e-name" name="namePart" type="text" />
+        </div>
+        <div class="form-group">
+          <label for="e-amount">Quantidade</label>
+          <input id="e-amount" name="amount" type="number" min="0" />
+        </div>
+        <div class="form-group">
+          <label for="e-buy">Valor de compra (R$)</label>
+          <input id="e-buy" name="buyValue" type="number" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label for="e-sale">Valor de venda (R$)</label>
+          <input id="e-sale" name="saleValue" type="number" step="0.01" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" id="cancel-edit">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Atualizar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-box__icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6"/><path d="M14 11v6"/>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+      </svg>
+    </div>
+    <div class="confirm-box__title">REMOVER PEÇA</div>
+    <div class="confirm-box__label">
+      Tem certeza que deseja remover <strong id="confirm-name"></strong>?<br/>
+      Esta ação não pode ser desfeita.
+    </div>
+    <div class="confirm-box__actions">
+      <button class="btn btn-ghost" id="confirm-cancel">Cancelar</button>
+      <button class="btn btn-danger" id="confirm-ok">Remover</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { getParts, createPart, updatePart, deletePart } from '../js/api.js';
+  import { toast, openModal, closeModal, bindModalOverlayClose } from '../js/ui.js';
+
+  let allParts = [];
+  let pendingDeleteId = null;
+
+  bindModalOverlayClose('modal-create');
+  bindModalOverlayClose('modal-edit');
+  document.getElementById('close-create').onclick  = () => closeModal('modal-create');
+  document.getElementById('cancel-create').onclick = () => closeModal('modal-create');
+  document.getElementById('close-edit').onclick    = () => closeModal('modal-edit');
+  document.getElementById('cancel-edit').onclick   = () => closeModal('modal-edit');
+
+  document.getElementById('btn-new').onclick = () => {
+    document.getElementById('form-create').reset();
+    openModal('modal-create');
+  };
+
+  // Confirm delete
+  const confirmOverlay = document.getElementById('confirm-overlay');
+  confirmOverlay.addEventListener('click', (e) => { if (e.target === confirmOverlay) closeConfirm(); });
+  document.getElementById('confirm-cancel').onclick = closeConfirm;
+  document.getElementById('confirm-ok').onclick = async () => {
+    if (pendingDeleteId === null) return;
+    const id = pendingDeleteId;
+    closeConfirm();
+    const { ok } = await deletePart(id);
+    if (ok) { toast('Peça removida.'); await loadParts(); }
+    else toast('Erro ao remover.', 'error');
+  };
+
+  function openConfirm(id, name) {
+    pendingDeleteId = id;
+    document.getElementById('confirm-name').textContent = name;
+    confirmOverlay.classList.add('open');
+  }
+  function closeConfirm() {
+    pendingDeleteId = null;
+    confirmOverlay.classList.remove('open');
+  }
+
+  const brl = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  document.getElementById('search-input').addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    renderTable(allParts.filter(p => (p.name_part ?? p.namePart ?? '').toLowerCase().includes(q)));
+  });
+
+  async function loadParts() {
+    const wrap = document.getElementById('table-wrap');
+    wrap.innerHTML = '<div class="spinner"></div>';
+    const { data, ok } = await getParts();
+    if (!ok || !data) { wrap.innerHTML = '<div class="empty-state"><h3>Erro ao carregar</h3></div>'; return; }
+    allParts = data;
+    document.getElementById('meta-count').textContent = `${data.length} peça${data.length !== 1 ? 's' : ''} no estoque`;
+    renderTable(data);
+  }
+
+  function renderTable(parts) {
+    const wrap = document.getElementById('table-wrap');
+    if (!parts.length) {
+      wrap.innerHTML = `<div class="empty-state"><div class="empty-state__icon">🔧</div><h3>Nenhuma peça encontrada</h3></div>`;
+      return;
+    }
+    const rows = parts.map(p => {
+      const id      = p.id_part   ?? p.idPart;
+      const name    = p.name_part ?? p.namePart;
+      const amount  = p.amount;
+      const buyVal  = p.buy_value  ?? p.buyValue;
+      const saleVal = p.sale_value ?? p.saleValue;
+      const stockChip = amount < 10
+        ? `<span class="chip" style="background:rgba(224,85,85,.15);color:#e05555;border-color:rgba(224,85,85,.3)">${amount}</span>`
+        : `<span>${amount}</span>`;
+      return `
+        <tr>
+          <td class="td-id">#${id}</td>
+          <td>${name}</td>
+          <td>${stockChip}</td>
+          <td>${brl(buyVal)}</td>
+          <td>${brl(saleVal)}</td>
+          <td>
+            <div class="td-actions">
+              <button class="btn btn-ghost btn-sm" onclick="editPart(${id})">Editar</button>
+              <button class="btn btn-danger btn-sm" onclick="triggerDelete(${id}, '${name.replace(/'/g,"\\'")}')">Remover</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+    wrap.innerHTML = `
+      <table>
+        <thead><tr><th>ID</th><th>Nome</th><th>Qtd</th><th>Compra</th><th>Venda</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  document.getElementById('form-create').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const body = { namePart: fd.get('namePart'), amount: parseInt(fd.get('amount')), buyValue: parseFloat(fd.get('buyValue')), saleValue: parseFloat(fd.get('saleValue')) };
+    const { ok } = await createPart(body);
+    if (ok) { toast('Peça criada!'); closeModal('modal-create'); await loadParts(); }
+    else toast('Erro ao criar peça.', 'error');
+  });
+
+  document.getElementById('form-edit').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = parseInt(document.getElementById('e-id').value);
+    const fd = new FormData(e.target);
+    const body = {};
+    const nP = fd.get('namePart'); const am = fd.get('amount'); const bV = fd.get('buyValue'); const sV = fd.get('saleValue');
+    if (nP) body.namePart  = nP;
+    if (am) body.amount    = parseInt(am);
+    if (bV) body.buyValue  = parseFloat(bV);
+    if (sV) body.saleValue = parseFloat(sV);
+    const { ok } = await updatePart(id, body);
+    if (ok) { toast('Peça atualizada!'); closeModal('modal-edit'); await loadParts(); }
+    else toast('Erro ao atualizar.', 'error');
+  });
+
+  window.editPart = (id) => {
+    const p = allParts.find(x => (x.id_part ?? x.idPart) === id);
+    if (!p) return;
+    document.getElementById('e-id').value     = id;
+    document.getElementById('e-name').value   = p.name_part  ?? p.namePart  ?? '';
+    document.getElementById('e-amount').value = p.amount     ?? '';
+    document.getElementById('e-buy').value    = p.buy_value  ?? p.buyValue  ?? '';
+    document.getElementById('e-sale').value   = p.sale_value ?? p.saleValue ?? '';
+    openModal('modal-edit');
+  };
+
+  window.triggerDelete = openConfirm;
+
+  loadParts();
+</script>
+
 </body>
 </html>
