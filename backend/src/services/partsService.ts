@@ -19,10 +19,41 @@ export const listPartService = async () => {
     }
 };
 
-export const getPartByIdService = async () => {};
+export const getPartByNameService = async (name:string) => {
+    try{
+        const data = await pd.findPartsByName(name);
+        let response = null;
+        if(data) response = await hr.ok(data);
+        else response = await hr.noContent();
 
-export const createPartService = async () => {};
+        return response;
+    }
+    catch(error){
+        console.error(error);
+        return hr.internalServerError(error as Error);
+    }
+};
 
-export const updatePartService = async () => {};
+export const createPartService = async (part:PartsModel) => {
+    const data = await pd.insertPart(part);
+    let response = null
 
-export const deletePartService = async () => {};
+    if(data) response = await hr.created(data);
+    else response = await hr.badRequest();
+
+    return response;
+};
+
+export const updatePartService = async (id:number, bodyValue:PartsModel) => {
+    const data = await pd.updatePart(id, bodyValue);
+    const response = await hr.ok(data);
+    return response;
+};
+
+export const deletePartService = async (id:number) => {
+    let response = null;
+    await pd.deletePart(id);
+    
+    response = await hr.ok({message: 'deleted'})
+    return response;
+};

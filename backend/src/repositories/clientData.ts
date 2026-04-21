@@ -3,14 +3,14 @@ import { ClientModel } from "../Models/clientModel";
 
 export const findClients = async ():Promise<ClientModel[]> => {
     const result = await pool.query<ClientModel>(
-        `SELECT id, name, address, phone, cpf, email FROM clients ORDER BY id`
+        `SELECT * FROM clients ORDER BY id`
     );
     return result.rows;
 };
 
 export const findClientsByName = async (name:string):Promise<ClientModel | null> => {
     const result = await pool.query<ClientModel>(
-        `SELECT id, name, address, phone, cpf, email FROM clients WHERE name = $1`,
+        `SELECT * FROM clients WHERE name = $1`,
         [name]
     );
     return result.rows[0] ?? null;
@@ -29,11 +29,11 @@ export const insertClient = async (client:ClientModel):Promise<ClientModel> => {
 };
 
 export const updateClient = async (id:number, bodyValue:Partial<{
-    name: string,
-    address: string,
-    phone: string
-    cpf: string,
-    email: string
+        name: string,
+        address: string,
+        phone: string
+        cpf: string,
+        email: string
     }>
 ) => {
     const field: string[] = [];
