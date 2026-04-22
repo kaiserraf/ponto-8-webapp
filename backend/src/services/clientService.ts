@@ -3,50 +3,79 @@ import * as cd from "../repositories/clientData";
 import * as hr from '../utils/http';
 
 export const listClientService = async () => {
-    const data = await cd.findClients();
-    let response = null;
+    try{
+        const data = await cd.findClients();
+        let response = null;
     
-    if(data) response = await hr.ok(data);
-    else response = await hr.noContent();
+        if(data) response = await hr.ok(data);
+        else response = await hr.noContent();
 
-    return response;
+        return response;
+    }
+    catch(error){
+        console.error(error);
+        return hr.internalServerError(error as Error);
+    }
 }
 
 export const getClientByNameService = async (name:string) => {
-    const data = await cd.findClientsByName(name);
-    let response = null;
-    if(data){
-        response = await hr.ok(data);
-    }else{
-        response = await hr.noContent();    
-    }
+    try{
+        const data = await cd.findClientsByName(name);
+        let response = null;
 
-    return response;
+        if(data) response = await hr.ok(data);
+        else response = await hr.noContent();    
+
+        return response;
+    }
+    catch(error){
+        console.error(error);
+        return hr.internalServerError(error as Error);
+    }
 }
 
 export const createClientService = async (client:ClientModel) => {
-    const data = await cd.insertClient(client);
-    let response = null;
-
-    if(data){
-        response = await hr.created(data);
-    }else{
-        response = await hr.badRequest();
+    try {
+        const data = await cd.insertClient(client);
+        let response = null;
+        
+        if(data){
+            response = await hr.created(data);
+        }else{
+            response = await hr.badRequest();
+        }
+        
+        return response;
+        
+    } catch (error) {
+        console.error(error);
+        return hr.internalServerError(error as Error);
     }
     
-    return response;
 }
 
 export const updateClientService = async (id:number, bodyValue:ClientModel) => {   
-    const data = await cd.updateClient(id, bodyValue);
-    const response = await hr.ok(data);
-    return response;
+    try {
+        const data = await cd.updateClient(id, bodyValue);
+        const response = await hr.ok(data);
+        return response;
+    } catch (error) {
+        console.error(error);
+        return hr.internalServerError(error as Error);
+    }
 }
 
 export const deleteClientService = async (id:number) => {
-    let response = null;
-    await cd.deleteClient(id);
-
-    response = await hr.ok({message: 'deleted'})
-    return response;
+    try {
+        let response = null;
+        await cd.deleteClient(id);
+    
+        response = await hr.ok({message: 'deleted'})
+        return response;
+        
+    } catch (error) {
+        console.error(error);
+        return hr.internalServerError(error as Error);
+    }
+    
 }

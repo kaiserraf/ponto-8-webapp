@@ -35,25 +35,40 @@ export const getVehicleByIdService = async (id:number) => {
 };
 
 export const createVehicleService = async (vehicle:VehicleModel) => {
-    const data = await vd.insertVehicle(vehicle);
+    try {
+        const data = await vd.insertVehicle(vehicle);
         let response = null
-    
+        
         if(data) response = await hr.created(data);
         else response = await hr.badRequest();
-    
+        
         return response;
+    } catch (error) {
+        console.error(error);
+        return hr.internalServerError(error as Error);
+    }
 };
 
 export const updateVehicleService = async (id:number, bodyValue:VehicleModel) => {
-    const data = await vd.updateVehicle(id, bodyValue);
-    const response = await hr.ok(data);
-    return response;
+    try {
+        const data = await vd.updateVehicle(id, bodyValue);
+        const response = await hr.ok(data);
+        return response;
+    } catch (error) {
+        console.error(error);
+        return hr.internalServerError(error as Error);   
+    }
 };
 
 export const deleteVehicleService = async (id:number) => {
-    let response = null;
-    await vd.deleteVehicle(id);
-        
-    response = await hr.ok({message: 'deleted'})
-    return response;
+    try {
+        let response = null;
+        await vd.deleteVehicle(id);
+            
+        response = await hr.ok({message: 'deleted'})
+        return response;
+    } catch (error) {
+        console.error(error);
+        return hr.internalServerError(error as Error);
+    }
 };
