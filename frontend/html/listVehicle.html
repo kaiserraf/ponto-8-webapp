@@ -110,8 +110,10 @@
           <input id="c-chassi" name="chassi" type="text" placeholder="9BWZZZ377VT000000" required />
         </div>
         <div class="form-group full">
-          <label for="c-client">ID do Cliente (proprietário)</label>
-          <input id="c-client" name="cliendId" type="number" placeholder="1" min="1" required />
+          <label for="c-client">Cliente (proprietário)</label>
+          <select id="c-client" name="cliendId" required>
+            <option value="">Selecione um cliente...</option>
+          </select>
         </div>
       </div>
       <div class="form-actions">
@@ -153,8 +155,10 @@
           <input id="e-chassi" name="chassi" type="text" />
         </div>
         <div class="form-group full">
-          <label for="e-client">ID do Cliente</label>
-          <input id="e-client" name="cliendId" type="number" min="1" />
+          <label for="e-client">Cliente (proprietário)</label>
+          <select id="e-client" name="cliendId">
+            <option value="">Selecione um cliente...</option>
+          </select>
         </div>
       </div>
       <div class="form-actions">
@@ -189,10 +193,11 @@
 </div>
 
 <script type="module">
-  import { getVehicles, createVehicle, updateVehicle, deleteVehicle } from '../js/api.js';
+  import { getVehicles, getClients, createVehicle, updateVehicle, deleteVehicle } from '../js/api.js';
   import { toast, openModal, closeModal, bindModalOverlayClose } from '../js/ui.js';
 
   let allVehicles = [];
+  let clientMap = {}; // { id: firstName }
   let pendingDeleteId = null;
 
   bindModalOverlayClose('modal-create');
@@ -230,6 +235,17 @@
     confirmOverlay.classList.remove('open');
   }
 
+  /** Popula os <select> de cliente nos dois modais */
+  function populateClientSelects(clients) {
+    const options = clients.map(c => {
+      const firstName = c.name.split(' ')[0];
+      return `<option value="${c.id}">${c.name}</option>`;
+    }).join('');
+    const base = '<option value="">Selecione um cliente...</option>';
+    document.getElementById('c-client').innerHTML = base + options;
+    document.getElementById('e-client').innerHTML = base + options;
+  }
+
   document.getElementById('search-input').addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase();
     renderTable(allVehicles.filter(v => {
@@ -242,12 +258,27 @@
   async function loadVehicles() {
     const wrap = document.getElementById('table-wrap');
     wrap.innerHTML = '<div class="spinner"></div>';
-    const { data, ok } = await getVehicles();
-    if (!ok || !data) { wrap.innerHTML = '<div class="empty-state"><h3>Erro ao carregar</h3></div>'; return; }
-    allVehicles = data;
+
+    const [vRes, cRes] = await Promise.all([getVehicles(), getClients()]);
+
+    if (!vRes.ok || !vRes.data) {
+      wrap.innerHTML = '<div class="empty-state"><h3>Erro ao carregar</h3></div>';
+      return;
+    }
+
+    // Monta mapa id -> primeiro nome
+    if (cRes.ok && cRes.data) {
+      clientMap = {};
+      cRes.data.forEach(c => {
+        clientMap[c.id] = c.name.split(' ')[0];
+      });
+      populateClientSelects(cRes.data);
+    }
+
+    allVehicles = vRes.data;
     document.getElementById('meta-count').textContent =
-      `${data.length} veículo${data.length !== 1 ? 's' : ''} registrado${data.length !== 1 ? 's' : ''}`;
-    renderTable(data);
+      `${vRes.data.length} veículo${vRes.data.length !== 1 ? 's' : ''} registrado${vRes.data.length !== 1 ? 's' : ''}`;
+    renderTable(vRes.data);
   }
 
   function renderTable(vehicles) {
@@ -264,6 +295,7 @@
       const plate    = v.plate;
       const chassi   = v.chassi;
       const clientId = v.client_id     ?? v.cliendId;
+      const clientName = clientMap[clientId] ?? `#${clientId}`;
       return `
         <tr>
           <td class="td-id">#${id}</td>
@@ -271,7 +303,7 @@
           <td>${year}</td>
           <td><span class="chip">${plate}</span></td>
           <td style="font-size:12px;color:var(--gray-light)">${chassi}</td>
-          <td class="td-id">cliente #${clientId}</td>
+          <td>${clientName}</td>
           <td>
             <div class="td-actions">
               <button class="btn btn-ghost btn-sm" onclick="editVehicle(${id})">Editar</button>
@@ -290,7 +322,14 @@
   document.getElementById('form-create').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
-    const body = { vehicleModel: fd.get('vehicleModel'), vehicleBrand: fd.get('vehicleBrand'), year: parseInt(fd.get('year')), plate: fd.get('plate'), chassi: fd.get('chassi'), cliendId: parseInt(fd.get('cliendId')) };
+    const body = {
+      vehicleModel: fd.get('vehicleModel'),
+      vehicleBrand: fd.get('vehicleBrand'),
+      year: parseInt(fd.get('year')),
+      plate: fd.get('plate'),
+      chassi: fd.get('chassi'),
+      cliendId: parseInt(fd.get('cliendId'))
+    };
     const { ok } = await createVehicle(body);
     if (ok) { toast('Veículo cadastrado!'); closeModal('modal-create'); await loadVehicles(); }
     else toast('Erro ao cadastrar.', 'error');
@@ -301,7 +340,14 @@
     const id = parseInt(document.getElementById('e-id').value);
     const fd = new FormData(e.target);
     const body = {};
-    const map = { vehicleModel: v => v, vehicleBrand: v => v, year: v => parseInt(v), plate: v => v, chassi: v => v, cliendId: v => parseInt(v) };
+    const map = {
+      vehicleModel: v => v,
+      vehicleBrand: v => v,
+      year: v => parseInt(v),
+      plate: v => v,
+      chassi: v => v,
+      cliendId: v => parseInt(v)
+    };
     for (const [key, conv] of Object.entries(map)) {
       const val = fd.get(key);
       if (val !== '') body[key] = conv(val);
@@ -314,13 +360,14 @@
   window.editVehicle = (id) => {
     const v = allVehicles.find(x => (x.id_vehicle ?? x.idVehicle) === id);
     if (!v) return;
+    const clientId = v.client_id ?? v.cliendId;
     document.getElementById('e-id').value     = id;
     document.getElementById('e-model').value  = v.vehicle_model ?? v.vehicleModel ?? '';
     document.getElementById('e-brand').value  = v.vehicle_brand ?? v.vehicleBrand ?? '';
     document.getElementById('e-year').value   = v.year   ?? '';
     document.getElementById('e-plate').value  = v.plate  ?? '';
     document.getElementById('e-chassi').value = v.chassi ?? '';
-    document.getElementById('e-client').value = v.client_id ?? v.cliendId ?? '';
+    document.getElementById('e-client').value = clientId ?? '';
     openModal('modal-edit');
   };
 
