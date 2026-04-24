@@ -284,7 +284,7 @@
   function renderTable(vehicles) {
     const wrap = document.getElementById('table-wrap');
     if (!vehicles.length) {
-      wrap.innerHTML = `<div class="empty-state"><div class="empty-state__icon">🚗</div><h3>Nenhum veículo encontrado</h3></div>`;
+      wrap.innerHTML = `<div class="empty-state"><div class="empty-state__icon"></div><h3>Nenhum veículo encontrado</h3></div>`;
       return;
     }
     const rows = vehicles.map(v => {

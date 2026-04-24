@@ -251,7 +251,7 @@
   function renderTable(clients) {
     const wrap = document.getElementById('table-wrap');
     if (!clients.length) {
-      wrap.innerHTML = `<div class="empty-state"><div class="empty-state__icon">👥</div><h3>Nenhum cliente encontrado</h3></div>`;
+      wrap.innerHTML = `<div class="empty-state"><div class="empty-state__icon"></div><h3>Nenhum cliente encontrado</h3></div>`;
       return;
     }
     const rows = clients.map(c => `
