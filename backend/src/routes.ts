@@ -11,7 +11,6 @@ const router = Router();
 router.post('/register', userController.register);
 
 
-
 // client route
 router.get('/clients', clientController.getClient); // lista de clientes
 router.get('/clients/:name', clientController.getClientByName); // filtra clientes pelo nome -> ainda não funciona
@@ -28,7 +27,7 @@ router.delete('/parts/:id', partController.deletePart);
 
 // vehicle route
 router.get('/vehicle', vehicleController.getVehicle);
-router.get('/vehicle:id', vehicleController.getVehicleById);
+router.get('/vehicle/:id', vehicleController.getVehicleById);
 router.post('/vehicle/post', vehicleController.postVehicle);
 router.patch('/vehicle/update/:id', vehicleController.updateVehicle);
 router.delete('/vehicle/:id', vehicleController.deleteVehicle);

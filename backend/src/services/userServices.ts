@@ -5,6 +5,7 @@ import * as hr from '../utils/http';
 export const registerService = async (bodyValue:UserModel) => {
     try {
         const time = new Date();
+        console.log(time);
         const data = await ud.registerUser(bodyValue, time);
         let response = null;
 

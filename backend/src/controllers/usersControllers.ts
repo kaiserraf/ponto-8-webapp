@@ -1,5 +1,6 @@
 import * as us from '../services/userServices';
 import { badRequest } from '../utils/http';
+import {Request, Response} from 'express';
 
 // cadastrar usuario
 export const register = async (req:Request, res:Response) => {
@@ -9,8 +10,8 @@ export const register = async (req:Request, res:Response) => {
     if(httpResponse) res.status(httpResponse.status).json(httpResponse.body);
     else{
         const response = await badRequest();
-        res.status(httpResponse.status).json(httpResponse.body);
-    }
+        res.status(response.status).json(response.body);
+    }    
 }
 
 // login de usuario
