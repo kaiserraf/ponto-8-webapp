@@ -2,9 +2,15 @@ import { Router } from "express";
 import * as clientController from "./controllers/clientController";
 import * as partController from "./controllers/partsController";
 import * as vehicleController from "./controllers/vehicleController";
+import * as userController from './controllers/usersControllers';
 
 
 const router = Router();
+
+// users route
+router.post('/register', userController.register);
+
+
 
 // client route
 router.get('/clients', clientController.getClient); // lista de clientes
