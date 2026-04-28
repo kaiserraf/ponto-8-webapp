@@ -9,6 +9,7 @@ const router = Router();
 
 // users route
 router.post('/register', userController.register);
+router.post('/login', userController.login);
 
 
 // client route

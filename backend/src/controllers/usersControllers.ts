@@ -16,5 +16,7 @@ export const register = async (req:Request, res:Response) => {
 
 // login de usuario
 export const login = async (req:Request, res:Response) => {
-    
+    const {email, password} = req.body;
+    const httpResponse = await us.loginService(email, password);
+    res.status(httpResponse.status).json(httpResponse.body);
 }
