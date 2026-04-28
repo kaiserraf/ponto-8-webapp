@@ -45,7 +45,7 @@ export const updateVehicle = async (id:number, bodyValue:Partial<{
         year: number,
         chassi: string,
         plate: string,
-        cliendId: number
+        clientId: number
     }>
 ) => {
     const field: string[] = [];
@@ -72,9 +72,9 @@ export const updateVehicle = async (id:number, bodyValue:Partial<{
         field.push(`plate = $${count++}`);
         value.push(bodyValue.plate);
     }
-    if(bodyValue.cliendId !== undefined){
-        field.push(`cliend_id = $${count++}`);
-        value.push(bodyValue.cliendId);
+    if(bodyValue.clientId !== undefined){
+        field.push(`client_id = $${count++}`);
+        value.push(bodyValue.clientId);
     }
 
     if(field.length === 0) return null;
@@ -82,7 +82,7 @@ export const updateVehicle = async (id:number, bodyValue:Partial<{
     value.push(id);
 
     const result = await pool.query<VehicleModel>(
-        `UPDATE vehicles SET ${field.join(',')} WHERE id = $${count}
+        `UPDATE vehicles SET ${field.join(',')} WHERE id_vehicle = $${count}
         RETURNING 
             id_vehicle, vehicle_model,
             vehicle_brand, year, chassi,
