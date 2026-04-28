@@ -3,6 +3,7 @@ import * as clientController from "./controllers/clientController";
 import * as partController from "./controllers/partsController";
 import * as vehicleController from "./controllers/vehicleController";
 import * as userController from './controllers/usersControllers';
+import { authToken } from './middlewares/auth';
 
 
 const router = Router();
@@ -13,24 +14,24 @@ router.post('/login', userController.login);
 
 
 // client route
-router.get('/clients', clientController.getClient); // lista de clientes
-router.get('/clients/:name', clientController.getClientByName); // filtra clientes pelo nome -> ainda não funciona
-router.post('/clients/post', clientController.postClient); // cadastro de clientes
-router.patch('/clients/update/:id', clientController.updateClient); // atualizar clientes
-router.delete('/clients/:id', clientController.deleteClient);
+router.get('/clients', authToken, clientController.getClient); // lista de clientes
+router.get('/clients/:name', authToken, clientController.getClientByName); // filtra clientes pelo nome -> ainda não funciona
+router.post('/clients/post', authToken, clientController.postClient); // cadastro de clientes
+router.patch('/clients/update/:id', authToken, clientController.updateClient); // atualizar clientes
+router.delete('/clients/:id', authToken, clientController.deleteClient);
 
 // parts route
-router.get('/parts', partController.getPart);
-router.get('/parts/:name', partController.getPartByName);
-router.post('/parts/post', partController.postPart);
-router.patch('/parts/update/:id', partController.updatePart);
-router.delete('/parts/:id', partController.deletePart);
+router.get('/parts', authToken, partController.getPart);
+router.get('/parts/:name', authToken, partController.getPartByName);
+router.post('/parts/post', authToken, partController.postPart);
+router.patch('/parts/update/:id', authToken, partController.updatePart);
+router.delete('/parts/:id', authToken, partController.deletePart);
 
 // vehicle route
-router.get('/vehicle', vehicleController.getVehicle);
-router.get('/vehicle/:id', vehicleController.getVehicleById);
-router.post('/vehicle/post', vehicleController.postVehicle);
-router.patch('/vehicle/update/:id', vehicleController.updateVehicle);
-router.delete('/vehicle/:id', vehicleController.deleteVehicle);
+router.get('/vehicle', authToken, vehicleController.getVehicle);
+router.get('/vehicle/:id', authToken, vehicleController.getVehicleById);
+router.post('/vehicle/post', authToken, vehicleController.postVehicle);
+router.patch('/vehicle/update/:id', authToken, vehicleController.updateVehicle);
+router.delete('/vehicle/:id', authToken, vehicleController.deleteVehicle);
 
 export default router;
