@@ -10,7 +10,7 @@ export const findParts = async () => {
 
 export const findPartsByName = async (name:string):Promise<PartsModel | null> => {
     const result = await pool.query<PartsModel>(
-        `SELECT * FROM parts ORDER BY name = $1`,
+        `SELECT * FROM parts WHERE name_part = $1`,
         [name]
     );
     return result.rows[0] ?? null;
@@ -61,7 +61,7 @@ export const updatePart = async (id:number, bodyValue:Partial<{
     value.push(id);
 
     const result = await pool.query<PartsModel>(
-        `UPDATE parts SET ${field.join(',')} WHERE id = $${count}
+        `UPDATE parts SET ${field.join(',')} WHERE id_part = $${count}
         RETURNING id_part, name_part, amount, buy_value, sale_value`,
         value
     );
@@ -72,7 +72,7 @@ export const updatePart = async (id:number, bodyValue:Partial<{
 export const deletePart = async (id:number):Promise<PartsModel | null> => {
     const result = await pool.query<PartsModel>(
         `DELETE FROM parts
-        WHERE id = $1
+        WHERE id_part = $1
         RETURNING id_part, name_part, amount, buy_value, sale_value`,
         [id]
     );

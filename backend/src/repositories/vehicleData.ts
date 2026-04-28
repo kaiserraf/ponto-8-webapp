@@ -10,7 +10,7 @@ export const findVehicle = async () => {
 
 export const findVehicleById = async (id:number):Promise<VehicleModel | null> => {
     const result = await pool.query<VehicleModel>(
-        `SELECT * FROM vehicles ORDER BY id_vehicle = $1`,
+        `SELECT * FROM vehicles WHERE id_vehicle = $1`,
         [id]
     );
     return result.rows[0] ?? null;
@@ -82,7 +82,7 @@ export const updateVehicle = async (id:number, bodyValue:Partial<{
     value.push(id);
 
     const result = await pool.query<VehicleModel>(
-        `UPDATE parts SET ${field.join(',')} WHERE id = $${count}
+        `UPDATE vehicles SET ${field.join(',')} WHERE id = $${count}
         RETURNING 
             id_vehicle, vehicle_model,
             vehicle_brand, year, chassi,
@@ -96,7 +96,7 @@ export const updateVehicle = async (id:number, bodyValue:Partial<{
 export const deleteVehicle = async (id:number):Promise<VehicleModel | null> => {
     const result = await pool.query<VehicleModel>(
         `DELETE FROM vehicles
-        WHERE id = $1
+        WHERE id_vehicle = $1
         RETURNING 
             id_vehicle, vehicle_model,
             vehicle_brand, year, chassi,
