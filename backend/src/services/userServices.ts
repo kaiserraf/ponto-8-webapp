@@ -33,7 +33,7 @@ export const loginService = async (email:string, password:string) => {
         if(!(email === data.email && password === data.passwordHash)) return hr.unauthorized();
 
         const token = jwt.sign({id: data.id}, secret, {expiresIn: '1h'});
-        response = hr.ok(token);
+        response = hr.ok({token});
 
         return response;
     } catch (error) {
