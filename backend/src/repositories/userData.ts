@@ -20,4 +20,28 @@ export const loginUser = async (email:string):Promise<UserModel> => {
         [email.toLowerCase().trim()]
     );
     return result.rows[0] ?? null;
-}
+};
+
+export const saveRefreshToken = async (userId:number, token:string, expiresAt: Date) => {
+    await pool.query(
+        `INSERT INTO refresh_tokens (user_id, token, expires_at)
+         VALUES ($1, $2, $3)`,
+         [userId, token, expiresAt]
+    );
+};
+
+export const findRefreshToken = async (token:string) => {
+    const result = await pool.query(
+        `SELECT * FROM refresh_tokens
+        WHERE token = $1 AND expires_at > NOW()`,
+        [token]
+    );
+    return result.rows[0] ?? null;
+};
+
+export const deleteRefreshToken = async (token:string) => {
+    await pool.query(
+        `DELETE FROM refresh_tokens WHERE token = $1`,
+        [token]
+    );
+};

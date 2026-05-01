@@ -30,3 +30,21 @@ CREATE TABLE parts (
     buy_value  NUMERIC(10, 2) NOT NULL,
     sale_value NUMERIC(10, 2) NOT NULL
 );
+
+-- Tabela de usuários do sistema
+CREATE TABLE users (
+    id            SERIAL PRIMARY KEY,
+    name          VARCHAR(100)  NOT NULL,
+    email         VARCHAR(100)  NOT NULL UNIQUE,
+    password_hash VARCHAR(255)  NOT NULL,
+    created_at    TIMESTAMP     NOT NULL DEFAULT NOW()
+);
+
+-- Refresh Tokens
+CREATE TABLE refresh_tokens (
+    id          SERIAL PRIMARY KEY,
+    user_id     INT           NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token       TEXT          NOT NULL UNIQUE,
+    expires_at  TIMESTAMP     NOT NULL,
+    created_at  TIMESTAMP     NOT NULL DEFAULT NOW()
+);

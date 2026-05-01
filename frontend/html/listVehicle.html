@@ -49,6 +49,15 @@
       </svg>
       Peças
     </a>
+    <span class="sidebar__section">Sistema</span>
+    <a href="#" class="nav-link" id="btn-logout">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+      Sair
+    </a>
   </nav>
 
   <main class="main">
@@ -193,11 +202,17 @@
 </div>
 
 <script type="module">
+  import { logout } from '../js/authGuard.js';
   import { getVehicles, getClients, createVehicle, updateVehicle, deleteVehicle } from '../js/api.js';
   import { toast, openModal, closeModal, bindModalOverlayClose } from '../js/ui.js';
 
+  document.getElementById('btn-logout').onclick = (e) => {
+    e.preventDefault();
+    logout();
+  };
+
   let allVehicles = [];
-  let clientMap = {}; // { id: firstName }
+  let clientMap = {}; // { id: name }
   let pendingDeleteId = null;
 
   bindModalOverlayClose('modal-create');
@@ -238,7 +253,6 @@
   /** Popula os <select> de cliente nos dois modais */
   function populateClientSelects(clients) {
     const options = clients.map(c => {
-      const firstName = c.name.split(' ')[0];
       return `<option value="${c.id}">${c.name}</option>`;
     }).join('');
     const base = '<option value="">Selecione um cliente...</option>';
@@ -266,11 +280,11 @@
       return;
     }
 
-    // Monta mapa id -> primeiro nome
+    // Monta mapa id -> nome
     if (cRes.ok && cRes.data) {
       clientMap = {};
       cRes.data.forEach(c => {
-        clientMap[c.id] = c.name.split(' ')[0];
+        clientMap[c.id] = c.name;
       });
       populateClientSelects(cRes.data);
     }
@@ -340,18 +354,16 @@
     const id = parseInt(document.getElementById('e-id').value);
     const fd = new FormData(e.target);
     const body = {};
-    const map = {
-      vehicleModel: v => v,
-      vehicleBrand: v => v,
-      year: v => parseInt(v),
-      plate: v => v,
-      chassi: v => v,
-      cliendId: v => parseInt(v)
-    };
-    for (const [key, conv] of Object.entries(map)) {
-      const val = fd.get(key);
-      if (val !== '') body[key] = conv(val);
-    }
+    
+    const fields = ['vehicleModel', 'vehicleBrand', 'year', 'plate', 'chassi', 'cliendId'];
+    fields.forEach(f => {
+        const val = fd.get(f);
+        if (val !== '') {
+            if (f === 'year' || f === 'cliendId') body[f] = parseInt(val);
+            else body[f] = val;
+        }
+    });
+
     const { ok } = await updateVehicle(id, body);
     if (ok) { toast('Veículo atualizado!'); closeModal('modal-edit'); await loadVehicles(); }
     else toast('Erro ao atualizar.', 'error');

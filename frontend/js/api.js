@@ -11,12 +11,24 @@ const BASE_URL = 'http://localhost:3333';
 
 /**
  * Realiza uma requisição HTTP genérica.
+ * Lê o token JWT do localStorage e o inclui automaticamente
+ * no header Authorization de todas as requisições.
+ * Se o servidor retornar 401 (token ausente ou expirado),
+ * limpa o token e redireciona para a página de login.
+ *
  * Retorna { data, ok, status } para simplificar o tratamento nas páginas.
  */
 async function request(method, path, body = null) {
+  // Pega o token salvo após o login
+  const token = localStorage.getItem('token');
+
   const opts = {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      // Inclui o Bearer token se ele existir
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    },
   };
 
   // Inclui o corpo apenas quando necessário (POST / PATCH)
@@ -24,6 +36,13 @@ async function request(method, path, body = null) {
 
   try {
     const res = await fetch(`${BASE_URL}${path}`, opts);
+
+    // Token expirado ou inválido → desloga e manda pro login
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/index.html';
+      return { data: null, ok: false, status: 401 };
+    }
 
     // Tenta parsear JSON; se vier vazio (204) retorna null
     let data = null;

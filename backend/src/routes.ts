@@ -11,7 +11,8 @@ const router = Router();
 // users route
 router.post('/register', userController.register);
 router.post('/login', userController.login);
-
+router.post('/refresh', userController.refresh);
+router.post('/logout', userController.logout);
 
 // client route
 router.get('/clients', authToken, clientController.getClient); // lista de clientes

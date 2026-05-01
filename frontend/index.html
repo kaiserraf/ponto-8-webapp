@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acesso | Ponto 8</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="img/logo8.png" />
+  <style>
+    /* ── Auth-specific layout ── */
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: var(--black);
+      background-image:
+        radial-gradient(ellipse 60% 50% at 20% 80%, rgba(245,197,24,.07) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 80% 20%, rgba(245,197,24,.04) 0%, transparent 60%);
+    }
+
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 420px;
+      padding: 40px 36px 36px;
+      box-shadow: var(--shadow);
+      animation: cardIn .35s ease forwards;
+    }
+
+    @keyframes cardIn {
+      from { opacity:0; transform:translateY(18px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* ── Logo area ── */
+    .auth-brand {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .auth-brand__logo {
+      font-family: var(--font-display);
+      font-size: 36px;
+      letter-spacing: 3px;
+      color: var(--yellow);
+      line-height: 1;
+    }
+
+    .auth-brand__sub {
+      font-size: 11px;
+      color: var(--gray-light);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
+    .auth-brand__divider {
+      width: 36px;
+      height: 2px;
+      background: var(--yellow);
+      margin: 10px auto 0;
+      border-radius: 1px;
+    }
+
+    /* ── Tab switcher ── */
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 3px;
+      margin-bottom: 28px;
+      gap: 2px;
+    }
+
+    .auth-tab {
+      padding: 9px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: var(--font-body);
+      color: var(--gray-light);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      border-radius: 5px;
+      transition: all var(--transition);
+    }
+
+    .auth-tab.active {
+      background: var(--surface);
+      color: var(--yellow);
+      box-shadow: 0 1px 6px rgba(0,0,0,.4);
+    }
+
+    /* ── Forms ── */
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+
+    .auth-form .form-group { margin-bottom: 14px; }
+
+    .auth-form .form-group label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gray-light);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .auth-form .form-group input {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 11px 13px;
+      outline: none;
+      transition: border-color var(--transition);
+      box-sizing: border-box;
+    }
+
+    .auth-form .form-group input:focus { border-color: var(--yellow); }
+    .auth-form .form-group input::placeholder { color: var(--gray-light); }
+
+    .auth-submit {
+      width: 100%;
+      margin-top: 8px;
+      padding: 12px;
+      font-size: 14px;
+      justify-content: center;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Feedback ── */
+    .auth-msg {
+      font-size: 13px;
+      text-align: center;
+      margin-top: 14px;
+      min-height: 20px;
+      transition: all .2s;
+    }
+
+    .auth-msg.error   { color: #e05555; }
+    .auth-msg.success { color: var(--yellow); }
+
+    /* ── Spinner inline ── */
+    .btn .spin {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.2);
+      border-top-color: var(--black);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      display: none;
+    }
+
+    .btn.loading .spin  { display: block; }
+    .btn.loading .label { display: none; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── After login redirect note ── */
+    .auth-footer {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 12px;
+      color: var(--gray-light);
+    }
+  </style>
+</head>
+<body>
+
+<div class="auth-card">
+
+  <!-- Brand -->
+  <div class="auth-brand">
+    <div class="auth-brand__logo">PONTO 8</div>
+    <div class="auth-brand__divider"></div>
+    <div class="auth-brand__sub">Sistema de Gestão</div>
+  </div>
+
+  <!-- Tab switcher -->
+  <div class="auth-tabs">
+    <button class="auth-tab active" id="tab-login"   onclick="switchTab('login')">Entrar</button>
+    <button class="auth-tab"        id="tab-register" onclick="switchTab('register')">Cadastrar</button>
+  </div>
+
+  <!-- LOGIN FORM -->
+  <form class="auth-form active" id="form-login" autocomplete="off">
+    <div class="form-group">
+      <label for="l-email">E-mail</label>
+      <input id="l-email" type="email" placeholder="seu@email.com" required />
+    </div>
+    <div class="form-group">
+      <label for="l-password">Senha</label>
+      <input id="l-password" type="password" placeholder="••••••••" required />
+    </div>
+    <button type="submit" class="btn btn-primary auth-submit" id="btn-login">
+      <div class="spin"></div>
+      <span class="label">Entrar</span>
+    </button>
+  </form>
+
+  <!-- REGISTER FORM -->
+  <form class="auth-form" id="form-register" autocomplete="off">
+    <div class="form-group">
+      <label for="r-name">Nome completo</label>
+      <input id="r-name" type="text" placeholder="João da Silva" required />
+    </div>
+    <div class="form-group">
+      <label for="r-email">E-mail</label>
+      <input id="r-email" type="email" placeholder="seu@email.com" required />
+    </div>
+    <div class="form-group">
+      <label for="r-password">Senha</label>
+      <input id="r-password" type="password" placeholder="••••••••" required />
+    </div>
+    <button type="submit" class="btn btn-primary auth-submit" id="btn-register">
+      <div class="spin"></div>
+      <span class="label">Criar conta</span>
+    </button>
+  </form>
+
+  <!-- Feedback message -->
+  <div class="auth-msg" id="auth-msg"></div>
+
+  <div class="auth-footer">Ponto 8 Motors &copy; 2025</div>
+</div>
+
+<script>
+  const BASE_URL = 'http://localhost:3333';
+
+  // ── Tab switcher ──────────────────────────────────────
+  window.switchTab = function(tab) {
+    document.getElementById('form-login').classList.toggle('active', tab === 'login');
+    document.getElementById('form-register').classList.toggle('active', tab === 'register');
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+    setMsg('');
+  }
+
+  // ── Feedback message ──────────────────────────────────
+  function setMsg(text, type = '') {
+    const el = document.getElementById('auth-msg');
+    el.textContent = text;
+    el.className = `auth-msg ${type}`;
+  }
+
+  // ── Button loading state ──────────────────────────────
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    if (loading) btn.classList.add('loading');
+    else btn.classList.remove('loading');
+    btn.disabled = loading;
+  }
+
+  // ── LOGIN ─────────────────────────────────────────────
+  document.getElementById('form-login').onsubmit = async (e) => {
+    e.preventDefault();
+    setMsg('');
+    setLoading('btn-login', true);
+
+    const email    = document.getElementById('l-email').value.trim();
+    const password = document.getElementById('l-password').value;
+
+    try {
+      const res = await fetch(`${BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data && (data.accessToken || data.acessToken)) {
+        // Salva apenas a string do token, não o objeto todo
+        const token = data.accessToken || data.acessToken;
+        localStorage.setItem('token', token);
+        setMsg('Login realizado! Redirecionando...', 'success');
+        setTimeout(() => { window.location.href = 'html/home.html'; }, 800);
+      } else {
+        setMsg('E-mail ou senha incorretos.', 'error');
+      }
+    } catch (err) {
+      setMsg('Não foi possível conectar ao servidor.', 'error');
+    } finally {
+      setLoading('btn-login', false);
+    }
+  };
+
+  // ── REGISTER ──────────────────────────────────────────
+  document.getElementById('form-register').onsubmit = async (e) => {
+    e.preventDefault();
+    setMsg('');
+    setLoading('btn-register', true);
+
+    const name          = document.getElementById('r-name').value.trim();
+    const email         = document.getElementById('r-email').value.trim();
+    const passwordHash  = document.getElementById('r-password').value;
+
+    try {
+      const res = await fetch(`${BASE_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, passwordHash })
+      });
+
+      if (res.status === 201) {
+        setMsg('Conta criada! Faça login agora.', 'success');
+        document.getElementById('form-register').reset();
+        setTimeout(() => switchTab('login'), 1500);
+      } else {
+        setMsg('Erro ao criar conta. E-mail pode já estar em uso.', 'error');
+      }
+    } catch (err) {
+      setMsg('Não foi possível conectar ao servidor.', 'error');
+    } finally {
+      setLoading('btn-register', false);
+    }
+  };
+
+  // ── Redireciona se já estiver logado ─────────────────
+  if (localStorage.getItem('token')) {
+    window.location.href = 'html/home.html';
+  }
+</script>
+
+</body>
+</html>
