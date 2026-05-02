@@ -48,3 +48,23 @@ CREATE TABLE refresh_tokens (
     expires_at  TIMESTAMP     NOT NULL,
     created_at  TIMESTAMP     NOT NULL DEFAULT NOW()
 );
+
+-- ordens de serviço
+CREATE TABLE service_orders (
+    id_so        SERIAL PRIMARY KEY,
+    id_client    INT            NOT NULL REFERENCES clients(id),
+    id_vehicle   INT            NOT NULL REFERENCES vehicles(id_vehicle),
+    mechanic     VARCHAR(100)   NOT NULL,
+    description  TEXT,
+    total_price  NUMERIC(10,2)  NOT NULL DEFAULT 0,
+    pdf_path     VARCHAR(300),
+    created_at   TIMESTAMP      NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE order_parts (
+    id           SERIAL PRIMARY KEY,
+    id_so        INT            NOT NULL REFERENCES service_orders(id_so) ON DELETE CASCADE,
+    id_part      INT            NOT NULL REFERENCES parts(id_part),
+    amount       INT            NOT NULL,
+    unit_price   NUMERIC(10,2)  NOT NULL
+);
