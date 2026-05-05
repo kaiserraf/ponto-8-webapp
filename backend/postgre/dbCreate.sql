@@ -54,7 +54,7 @@ CREATE TABLE service_orders (
     id_so        SERIAL PRIMARY KEY,
     id_client    INT            NOT NULL REFERENCES clients(id),
     id_vehicle   INT            NOT NULL REFERENCES vehicles(id_vehicle),
-    mechanic     VARCHAR(100)   NOT NULL,
+    mechanic     INT   NOT NULL REFERENCES users(id),
     description  TEXT,
     total_price  NUMERIC(10,2)  NOT NULL DEFAULT 0,
     pdf_path     VARCHAR(300),

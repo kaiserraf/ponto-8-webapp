@@ -3,6 +3,7 @@ import * as clientController from "./controllers/clientController";
 import * as partController from "./controllers/partsController";
 import * as vehicleController from "./controllers/vehicleController";
 import * as userController from './controllers/usersControllers';
+import * as osController from './controllers/osController';
 import { authToken } from './middlewares/auth';
 
 
@@ -34,5 +35,13 @@ router.get('/vehicle/:id', authToken, vehicleController.getVehicleById);
 router.post('/vehicle/post', authToken, vehicleController.postVehicle);
 router.patch('/vehicle/update/:id', authToken, vehicleController.updateVehicle);
 router.delete('/vehicle/:id', authToken, vehicleController.deleteVehicle);
+
+// os route
+router.get('/os', authToken, osController.getOs);
+router.get('/os/:id', authToken, osController.getOsById);
+router.post('/os/post', authToken, osController.postOs);
+router.patch('/os/update/:id', authToken, osController.updateOs);
+router.patch('os/pdfPath/:id', authToken, osController.updatePath);
+router.delete('/os/:id', authToken, osController.deleteOs);
 
 export default router;

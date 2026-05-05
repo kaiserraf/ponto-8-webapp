@@ -78,7 +78,7 @@ export const deleteClient = async (id:number): Promise<ClientModel | null> => {
     const result = await pool.query<ClientModel>(
         `DELETE FROM clients
         WHERE id = $1
-        RETURNING id, name, address, phone, cpf, email`,
+        RETURNING *`,
         [id]
     );
 
