@@ -6,6 +6,7 @@ const PORT = process.env.PORT;
 const app = express();
 
 app.use(express.static(path.join(__dirname, '../../frontend')));
+app.use('/pdfs', express.static(path.join(__dirname, '../pdfs')));
 
 app.use(express.json());
 app.use('/', router);

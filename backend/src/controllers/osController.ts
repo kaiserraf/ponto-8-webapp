@@ -39,7 +39,12 @@ export const deleteOs = async (req:Request, res:Response) => {
     res.status(httpResponse.status).json(httpResponse.body);
 };
 
-export const updatePath = async (req:Request, res:Response) => {};
+export const updatePath = async (req:Request, res:Response) => {
+    const id = parseInt(req.params.id as string);
+    const bodyValue:OSModel = req.body;
+    const httpResponse = await oss.updatePathService(id,bodyValue);
+    res.status(httpResponse.status).json(httpResponse.body);
+};
 
 export const insertOrderParts = async (req:Request, res:Response) => {
     const bodyValue = req.body;

@@ -48,6 +48,18 @@ export const insertOsService = async (os: OSModel) => {
     }
 }
 
+export const updatePathService = async (id:number, bodyValue:OSModel) => {
+    try {
+        const path = bodyValue.pdfPath;
+        const data = await osd.updatePath(path, id);
+        const response = await hr.ok(data);
+        return response;
+    } catch (error) {
+        console.error(error);
+        return hr.internalServerError(error as Error);
+    }
+};
+
 export const updateOsService = async (id:number, bodyValue:OSModel) => {
     try {
         const data = await osd.updateOS(id, bodyValue);

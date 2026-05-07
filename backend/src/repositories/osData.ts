@@ -39,7 +39,15 @@ export const insertOS = async (os: OSModel): Promise<OSModel> => {
 };
 
 // atualiza o pdf_path quando pdf é gerado
-export const updatePath = async () => {};
+export const updatePath = async (pdfPath:string | undefined, id:number) => {
+    const result = await pool.query<OSModel>(
+        `UPDATE service_orders SET pdf_path = $1 WHERE id_so = $2
+        RETURNING *`,
+        [pdfPath, id]
+    );
+
+    return result.rows[0] ?? null;
+};
 
 // atualiza toda a OS
 export const updateOS = async (id: number, bodyValue:Partial<{
@@ -104,7 +112,7 @@ export const deleteOP = async (id:number):Promise<PartsOsModel> => {
 // insere as peças da os em order_parts
 export const insertOP = async (parts:PartsOsModel):Promise<PartsOsModel> => {
     const result = await pool.query(
-        `SELECT INTO order_parts (id_so, id_part, amount, unit_price)
+        `INSERT INTO order_parts (id_so, id_part, amount, unit_price)
         VALUES ($1, $2, $3, $4)
         RETURNING *`,
         []
@@ -114,3 +122,10 @@ export const insertOP = async (parts:PartsOsModel):Promise<PartsOsModel> => {
     if(!op) throw new Error ("Falha ao inserir peças na OS");
     return op;
 };
+
+export const recIdPdf = async ():Promise<number[]> => {
+    const result = await pool.query(
+        `SELECT id_so FROM service_orders`
+    );
+    return result.rows.map(e => e.id_so);
+}
