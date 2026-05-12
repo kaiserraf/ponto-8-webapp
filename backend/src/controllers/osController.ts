@@ -56,3 +56,6 @@ export const insertOrderParts = async (req:Request, res:Response) => {
         res.status(response.status).json(response.body);
     }
 };
+
+
+export const generatePdf = async (req:Request, res:Response) => {};

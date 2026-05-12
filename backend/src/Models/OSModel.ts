@@ -1,7 +1,7 @@
 export interface OSModel {
     id: number,
-    id_client: number,
-    id_vehicle: number,
+    idClient: number,
+    idVehicle: number,
     mechanic: number,
     description: string,
     totalPrice: number,

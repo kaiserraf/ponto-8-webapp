@@ -97,3 +97,7 @@ export const insertOrderPartsService = async (part:PartsOsModel) => {
         return hr.internalServerError(error as Error);
     }
 };
+
+export const generatePdfService = async () => {
+    
+}

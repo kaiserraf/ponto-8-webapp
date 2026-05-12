@@ -8,12 +8,12 @@ export const findParts = async () => {
     return result.rows;
 };
 
-export const findPartsByName = async (name:string):Promise<PartsModel | null> => {
+export const findPartsByName = async (name:string):Promise<PartsModel[] | null> => {
     const result = await pool.query<PartsModel>(
         `SELECT * FROM parts WHERE name_part = $1`,
         [name]
     );
-    return result.rows[0] ?? null;
+    return result.rows ?? null;
 };
 
 export const insertPart = async (part:PartsModel) => {

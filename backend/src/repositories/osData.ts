@@ -28,7 +28,7 @@ export const insertOS = async (os: OSModel): Promise<OSModel> => {
          VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
         [
-            os.id_client, os.id_vehicle, os.mechanic,
+            os.idClient, os.idVehicle, os.mechanic,
             os.description, os.totalPrice, os.createdAt
         ]
     );
@@ -101,7 +101,7 @@ export const updateOS = async (id: number, bodyValue:Partial<{
 export const deleteOP = async (id:number):Promise<PartsOsModel> => {
     const result = await pool.query<PartsOsModel>(
         `DELETE FROM service_orders
-        WHERE id = $1
+        WHERE id_so = $1
         RETURNING *`,
         [id]
     );
@@ -115,7 +115,7 @@ export const insertOP = async (parts:PartsOsModel):Promise<PartsOsModel> => {
         `INSERT INTO order_parts (id_so, id_part, amount, unit_price)
         VALUES ($1, $2, $3, $4)
         RETURNING *`,
-        []
+        [parts.idSo, parts.idPart, parts.amount, parts.unitPrice]
     );
 
     const op = await result.rows[0];
@@ -123,9 +123,9 @@ export const insertOP = async (parts:PartsOsModel):Promise<PartsOsModel> => {
     return op;
 };
 
-export const recIdPdf = async ():Promise<number[]> => {
+export const findOpByIdSo = async (id:number):Promise<PartsOsModel[]> => {
     const result = await pool.query(
-        `SELECT id_so FROM service_orders`
+        `SELECT * FROM order_parts WHERE id_so  = $1`, [id]
     );
-    return result.rows.map(e => e.id_so);
+    return result.rows;
 }
