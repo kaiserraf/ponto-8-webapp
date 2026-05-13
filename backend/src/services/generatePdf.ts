@@ -36,12 +36,38 @@ export const variables = async(name:string, vehicle:number, idOs:number, parts:s
    const partsdb = await findPartsByName(parts);
    if(!partsdb) throw new Error("Impossivel gerar o PDF - não foi possivel acessar peças");
 
-   generatePdf(os, client, vehicledb, orderParts, partsdb);
+   await generatePdf(os, client, vehicledb, orderParts, partsdb);
+}
+
+function checarNovaPagina(doc: PDFKit.PDFDocument, y: number, alturaLinha: number = 35): number {
+   const limiteInferior = 760;
+   if (y + alturaLinha > limiteInferior) {
+      doc.addPage();
+      return 40; // reinicia o Y no topo da nova página
+   }
+   return y;
+}
+
+function formatarData(date: Date): string {
+   return new Date(date).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+   });
+}
+
+function formatarMoeda(value: number): string {
+   return value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+   });
 }
 
 export const  generatePdf = (os:OSModel, client:ClientModel, vehicle:VehicleModel, orderParts:PartsOsModel[], parts:PartsModel[]) => {
    const doc = new PDFDocument({ size: 'A4', margin: 40 });
-   const clientName = client.name.replace(" ", "_");
+   const clientName = client.name.replace(/ /g, "_");
    const writeStream = fs.createWriteStream(`OS_${os.id}_${clientName}.pdf`);
    doc.pipe(writeStream);
 
@@ -94,7 +120,7 @@ function gerarCabecalho(doc:PDFKit.PDFDocument, y:number, osId:number, open:Date
       .text(`Nº ${osId}`, 400, y + 20, { width: 155, align: 'center', characterSpacing: 1 });
 
    doc.fontSize(8).font('Helvetica').fillColor(COLORS.lightText)
-      .text(`Abertura: ${open}`, 400, y + 70, { width: 155, align: 'right' })
+      .text(`Abertura: ${formatarData(open)}`, 400, y + 70, { width: 155, align: 'right' });
 
    doc.moveTo(40, y + 105).lineTo(555, y + 105).lineWidth(2).stroke(COLORS.primary);
 
@@ -157,6 +183,7 @@ function gerarTabelaProdutos(doc: PDFKit.PDFDocument, yBase: number, po:PartsOsM
 
    let i  = 0;
    for(i = 0; i < po.length; i++){
+      y = checarNovaPagina(doc, y);
       const result = pa.find(p => p.idPart === po[i].idPart);
 
       doc.fontSize(9).font('Helvetica').fillColor(COLORS.text).text(`${i+1}`, 45, y);
@@ -164,9 +191,9 @@ function gerarTabelaProdutos(doc: PDFKit.PDFDocument, yBase: number, po:PartsOsM
       doc.font('Helvetica').fillColor(COLORS.lightText).fontSize(7.5);
       doc.fontSize(9).fillColor(COLORS.text);
       doc.text(`${po[i].amount}`, 350, y, { width: 30, align: 'center' });
-      doc.text(`${po[i].unitPrice}`, 400, y, { width: 70, align: 'right' });
+      doc.text(`${formatarMoeda(po[i].unitPrice)}`, 400, y, { width: 70, align: 'right' });
       let total = po[i].unitPrice * po[i].amount;
-      doc.text(`${total}`, 480, y, { width: 70, align: 'right' });
+      doc.text(`${formatarMoeda(total)}`, 480, y, { width: 70, align: 'right' });
       doc.moveTo(40, y + 25).lineTo(555, y + 25).lineWidth(1).stroke(COLORS.border);
 
       totalProducts += total
@@ -184,6 +211,7 @@ function gerarTabelaServicos(doc: PDFKit.PDFDocument, yBase: number, po:PartsOsM
 
    let i  = 0;
    for(i = 0; i < po.length; i++){
+      y = checarNovaPagina(doc, y);
       const result = pa.find(p => p.idPart === po[i].idPart);
 
       doc.fontSize(9).font('Helvetica').fillColor(COLORS.text).text(`${i+1}`, 45, y);
@@ -191,9 +219,9 @@ function gerarTabelaServicos(doc: PDFKit.PDFDocument, yBase: number, po:PartsOsM
       doc.font('Helvetica').fillColor(COLORS.lightText).fontSize(7.5);
       doc.fontSize(9).fillColor(COLORS.text);
       doc.text(`${po[i].amount}`, 350, y, { width: 30, align: 'center' });
-      doc.text(`${po[i].unitPrice}`, 400, y, { width: 70, align: 'right' });
+      doc.text(`${formatarMoeda(po[i].unitPrice)}`, 400, y, { width: 70, align: 'right' });
       let total = po[i].unitPrice * po[i].amount;
-      doc.text(`${total}`, 480, y, { width: 70, align: 'right' });
+      doc.text(`${formatarMoeda(total)}`, 480, y, { width: 70, align: 'right' });
       doc.moveTo(40, y + 25).lineTo(555, y + 25).lineWidth(1).stroke(COLORS.border);
 
       totalServices += total
@@ -221,7 +249,7 @@ function gerarTotais(doc: PDFKit.PDFDocument, yBase: number, products:number, se
    doc.fontSize(11).font('Helvetica-Bold').fillColor('black');
    doc.text('VALOR LÍQUIDO:', startX + 10, yBase + 50);
    const totalAll = products + services;
-   doc.text(`${totalAll}`, startX, yBase + 50, { width: 195, align: 'right' });
+   doc.text(`${formatarMoeda(totalAll)}`, startX, yBase + 50, { width: 195, align: 'right' });
 
    return yBase + 65;
 }

@@ -16,7 +16,7 @@ export const registerService = async (bodyValue:UserModel) => {
         return response;
 
     } catch (error) {
-        console.error(error);
+        console.error(error); 
         return hr.internalServerError(error as Error);
     }
 }
