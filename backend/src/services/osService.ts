@@ -1,3 +1,4 @@
+import { LaborModel } from '../Models/laborModel';
 import { OSModel } from '../Models/OSModel';
 import { PartsOsModel } from '../Models/partsOsModel';
 import * as osd from '../repositories/osData';
@@ -73,7 +74,7 @@ export const updateOsService = async (id:number, bodyValue:OSModel) => {
 
 export const deleteOsService = async (id:number) => {
     try {
-        await osd.deleteOP(id);
+        await osd.deleteOS(id);
         const response = await hr.ok({message: 'deleted'});
 
         return response;
@@ -98,6 +99,23 @@ export const insertOrderPartsService = async (part:PartsOsModel) => {
     }
 };
 
-export const generatePdfService = async () => {
-    
+export const deleteOrderPartsService = async (idSo:number, idPart:number) => {
+    try {
+        const data = await osd.deleteOP(idSo, idPart);
+        let response = null;
+
+        if(data) response = await hr.ok(data);
+        else response = await hr.noContent();
+
+        return response;
+    } catch (error) {
+        console.error(error);
+        return hr.internalServerError(error as Error);
+    }
 }
+
+export const insertOrderLaborService = async (labor:LaborModel) => {};
+
+export const deleteOrderLaborService = async (labor:LaborModel) => {};
+
+export const generatePdfService = async () => {};

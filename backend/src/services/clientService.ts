@@ -39,11 +39,8 @@ export const createClientService = async (client:ClientModel) => {
         const data = await cd.insertClient(client);
         let response = null;
         
-        if(data){
-            response = await hr.created(data);
-        }else{
-            response = await hr.badRequest();
-        }
+        if(data) response = await hr.created(data);
+        else response = await hr.badRequest();
         
         return response;
         

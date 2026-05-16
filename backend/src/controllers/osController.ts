@@ -57,5 +57,16 @@ export const insertOrderParts = async (req:Request, res:Response) => {
     }
 };
 
+export const deleteOrderParts = async (req:Request, res:Response) => {
+    const idSo = parseInt(req.params.id as string);
+    const idPart = parseInt(req.params.partId as string);
+    const httpResponse = await oss.deleteOrderPartsService(idSo, idPart);
+
+    res.status(httpResponse.status).json(httpResponse.body);
+}
+
+export const insertOrderLabor = async (req:Request, res:Response) => {};
+
+export const deleteOrderLabor = async (req:Request, res:Response) => {};
 
 export const generatePdf = async (req:Request, res:Response) => {};

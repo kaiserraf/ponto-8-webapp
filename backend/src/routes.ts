@@ -4,6 +4,7 @@ import * as partController from "./controllers/partsController";
 import * as vehicleController from "./controllers/vehicleController";
 import * as userController from './controllers/usersControllers';
 import * as osController from './controllers/osController';
+import * as laborController from './controllers/laborController';
 import { authToken } from './middlewares/auth';
 
 
@@ -29,6 +30,13 @@ router.post('/parts/post', authToken, partController.postPart);
 router.patch('/parts/update/:id', authToken, partController.updatePart);
 router.delete('/parts/:id', authToken, partController.deletePart);
 
+// labor route
+router.get('/labor', authToken, laborController.getLabors);
+router.get('/labor/:id', authToken, laborController.getLaborById);
+router.post('/labor/post', authToken, laborController.postLabor);
+router.patch('/labor/update/:id', authToken, laborController.updateLabor);
+router.delete('/labor/:id', authToken, laborController.deleteLabor);
+
 // vehicle route
 router.get('/vehicle', authToken, vehicleController.getVehicle);
 router.get('/vehicle/:id', authToken, vehicleController.getVehicleById);
@@ -43,5 +51,12 @@ router.post('/os/post', authToken, osController.postOs);
 router.patch('/os/update/:id', authToken, osController.updateOs);
 router.patch('os/pdfPath/:id', authToken, osController.updatePath);
 router.delete('/os/:id', authToken, osController.deleteOs);
+
+// Parts|Labor OS
+router.post('/os/:id/parts', authToken, osController.insertOrderParts);
+router.delete('/os/:id/parts/:partId', authToken, osController.deleteOrderParts);
+
+router.post('/os/:id/labor', authToken);
+router.delete('/os/:id/labor/:laborId', authToken);
 
 export default router;

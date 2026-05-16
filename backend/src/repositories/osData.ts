@@ -98,8 +98,9 @@ export const updateOS = async (id: number, bodyValue:Partial<{
     return result.rows[0] ?? null;
 };
 
-export const deleteOP = async (id:number):Promise<PartsOsModel> => {
-    const result = await pool.query<PartsOsModel>(
+// deleta a OS
+export const deleteOS = async (id:number):Promise<OSModel> => {
+    const result = await pool.query<OSModel>(
         `DELETE FROM service_orders
         WHERE id_so = $1
         RETURNING *`,
@@ -107,7 +108,7 @@ export const deleteOP = async (id:number):Promise<PartsOsModel> => {
     );
 
     return result.rows[0] ?? null;
-}
+};
 
 // insere as peças da os em order_parts
 export const insertOP = async (parts:PartsOsModel):Promise<PartsOsModel> => {
@@ -123,9 +124,31 @@ export const insertOP = async (parts:PartsOsModel):Promise<PartsOsModel> => {
     return op;
 };
 
+// encontra a peça em order_parts pelo id
 export const findOpByIdSo = async (id:number):Promise<PartsOsModel[]> => {
     const result = await pool.query(
         `SELECT * FROM order_parts WHERE id_so  = $1`, [id]
     );
     return result.rows;
-}
+};
+
+// delete peça em order_parts
+export const deleteOP = async (idSo:number, idPart:number):Promise<PartsOsModel> => {
+    const result = await pool.query<PartsOsModel>(
+        `DELETE FROM order_parts
+        WHERE id_part = $1 AND id_so = $2
+        RETURNING *`,
+        [idPart,idSo]
+    );
+
+    return result.rows[0] ?? null;
+};
+
+// insere serviço em order_labor
+export const insertOL = async () => {};
+
+// encontra serviço pelo id
+export const findOlByIdSo = async () => {};
+
+// delete serviços em order_labor
+export const deleteOL = async () => {};
