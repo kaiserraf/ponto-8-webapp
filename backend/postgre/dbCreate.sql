@@ -68,3 +68,19 @@ CREATE TABLE order_parts (
     amount       INT            NOT NULL,
     unit_price   NUMERIC(10,2)  NOT NULL
 );
+
+
+-- Catálogo de serviços da oficina
+CREATE TABLE labors (
+    id_labor    SERIAL PRIMARY KEY,
+    labor_name  VARCHAR(100) NOT NULL
+);
+
+-- Tabela de ligação: serviços vinculados a uma OS
+CREATE TABLE order_labor (
+    id          SERIAL PRIMARY KEY,
+    id_so       INT            NOT NULL REFERENCES service_orders(id_so) ON DELETE CASCADE,
+    id_labor    INT            NOT NULL REFERENCES labors(id_labor),
+    amount      INT            NOT NULL DEFAULT 1,
+    unit_price  NUMERIC(10,2)  NOT NULL
+);

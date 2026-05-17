@@ -2,12 +2,15 @@ import { UserModel } from '../Models/userModel';
 import * as ud from '../repositories/userData';
 import * as hr from '../utils/http';
 import * as jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+import crypto, { randomInt } from 'crypto';
+import { hash, compare } from 'bcrypt';
 
 export const registerService = async (bodyValue:UserModel) => {
     try {
         const time = new Date();
-        const data = await ud.registerUser(bodyValue, time);
+        const randomSalt = randomInt(10, 12);
+        const passwordHash = await hash(bodyValue.passwordHash, randomSalt);
+        const data = await ud.registerUser(bodyValue, time, passwordHash);
         let response = null;
 
         if(data) response = await hr.created(data);
@@ -28,10 +31,10 @@ export const loginService = async (email:string, password:string) => {
 
         const data = await ud.loginUser(email);
         if(!data) return hr.unauthorized();
-        if(!(email === data.email && password === data.passwordHash)) return hr.unauthorized();
+        const isValidPassword = await compare(password, data.passwordHash)
+        if(!isValidPassword) return hr.unauthorized();
 
         const accessToken = jwt.sign({id: data.id}, secret, {expiresIn: '15m'}); // expira em 15 minutos
-
         const refreshToken = crypto.randomBytes(64).toString('hex');
         // cria um refreshtoken baseado em randomBytes (128 caracteres)
         // é possivel usar UUID, mas ele possui um padrão, que pode ser descoberto

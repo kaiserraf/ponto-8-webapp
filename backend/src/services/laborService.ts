@@ -37,8 +37,8 @@ export const postLaborService = async (bodyValue:LaborModel) => {
         const data = await ld.postLabor(bodyValue);
         let response = null;
 
-        if(data) response = hr.created(data);
-        else response = hr.badRequest();
+        if(data) response = await hr.created(data);
+        else response = await hr.badRequest();
 
         return response;
     } catch (error) {
@@ -49,8 +49,8 @@ export const postLaborService = async (bodyValue:LaborModel) => {
 
 export const updateLaborService = async (id:number, newName:string) => {
     try {
-        const data = ld.updateLabor(id, newName);
-        const response = hr.ok(data);
+        const data = await ld.updateLabor(id, newName);
+        const response = await hr.ok(data);
         return response;
     } catch (error) {
         console.error(error);
@@ -63,8 +63,8 @@ export const deleteLaborService = async (id:number) => {
         const data = await ld.deleteLabor(id);
         let response = null;
 
-        if(data) response = hr.ok(data);
-        else response = hr.noContent();
+        if(data) response = await hr.ok(data);
+        else response = await hr.noContent();
 
         return response;
     } catch (error) {

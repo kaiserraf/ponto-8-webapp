@@ -11,7 +11,7 @@ import { authToken } from './middlewares/auth';
 const router = Router();
 
 // users route
-router.post('/register', userController.register);
+router.post('/register', authToken, userController.register);
 router.post('/login', userController.login);
 router.post('/refresh', userController.refresh);
 router.post('/logout', userController.logout);

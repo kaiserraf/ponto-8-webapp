@@ -19,9 +19,9 @@ export const selectLaborById = async (idLabor:number):Promise<LaborModel | null>
 
 export const postLabor = async (bodyValue:LaborModel):Promise<LaborModel> => {
     const result = await pool.query<LaborModel>(
-        `INSERT INTO labor (id_labor, labor_name)
-        VALUES ($1, $2)
-        RETURNING *`, [bodyValue.id, bodyValue.labor]
+        `INSERT INTO labor (labor_name)
+        VALUES ($1)
+        RETURNING *`, [bodyValue.labor]
     );
     const l = result.rows[0];
     if(!l) throw new Error('Falha ao criar Serviço');
@@ -31,7 +31,7 @@ export const postLabor = async (bodyValue:LaborModel):Promise<LaborModel> => {
 export const updateLabor = async (id:number, newName:string) => {
     const result = await pool.query<LaborModel>(
         `UPDATE labor
-        labor_name = $1
+        SET labor_name = $1
         WHERE id_labor = $2
         RETURNING *`,
         [newName, id]
