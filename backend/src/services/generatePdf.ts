@@ -2,9 +2,9 @@ import PDFDocument from 'pdfkit';
 import * as fs from 'fs';
 import  {findClientsByName} from '../repositories/clientData';
 import { findVehicleById} from '../repositories/vehicleData';
-import { findOSById, findOpByIdSo } from '../repositories/osData';
+import { findOSById, findOpByIdSo, findOlByIdSo } from '../repositories/osData';
 import { findPartsByName } from '../repositories/partsData';
-import { selectLaborById, selectLabors } from '../repositories/laborData';
+import { selectLaborById } from '../repositories/laborData';
 import { OSModel } from '../Models/OSModel';
 import { ClientModel } from '../Models/clientModel';
 import { VehicleModel } from '../Models/vehicleModel';
@@ -43,7 +43,10 @@ export const variables = async(name:string, vehicle:number, idOs:number, parts:s
    const orderLabor = await selectLaborById(idLabor);
    if(!orderLabor) throw new Error("Impossivel gerar o PDF - não foi possivel acessar serviços");
 
-   generatePdf(os, client, vehicledb, orderParts, partsdb, orderLabor);
+   const labor = await findOlByIdSo(idOs);
+   if(!labor) throw new Error("Impossivel gerar o PDF - não foi possivel acessar serviços");
+
+   generatePdf(os, client, vehicledb, orderParts, partsdb, orderLabor, labor);
 }
 
 function checarNovaPagina(doc: PDFKit.PDFDocument, y: number, alturaLinha: number = 35): number {
@@ -72,7 +75,13 @@ function formatarMoeda(value: number): string {
    });
 }
 
-export const  generatePdf = (os:OSModel, client:ClientModel, vehicle:VehicleModel, orderParts:PartsOsModel[], parts:PartsModel[], labor:LaborModel) => {
+export const  generatePdf = (
+   os:OSModel,
+   client:ClientModel,
+   vehicle:VehicleModel,
+   orderParts:PartsOsModel[], parts:PartsModel[],
+   orderLabor:LaborModel[], labor:LaborOsModel[]
+) => {
    const doc = new PDFDocument({ size: 'A4', margin: 40 });
    const clientName = client.name.replace(/ /g, "_");
    const writeStream = fs.createWriteStream(`OS_${os.id}_${clientName}.pdf`);
@@ -88,7 +97,7 @@ export const  generatePdf = (os:OSModel, client:ClientModel, vehicle:VehicleMode
    let products = totalProducts;
    yAtual = yAfterProducts + 20;
 
-   const {newY: yAfterServices, totalServices} = gerarTabelaServicos(doc, yAtual,orderParts, parts);
+   const {newY: yAfterServices, totalServices} = gerarTabelaServicos(doc, yAtual, orderLabor, labor);
    let services = totalServices;
    yAtual = yAfterServices + 20;
 
@@ -211,28 +220,28 @@ function gerarTabelaProdutos(doc:PDFKit.PDFDocument, yBase:number, po:PartsOsMod
    return {newY: y + 25, totalProducts};
 }
 
-function gerarTabelaServicos(doc: PDFKit.PDFDocument, yBase: number, po:PartsOsModel[], pa:PartsModel[]): {newY: number, totalServices: number} {
+function gerarTabelaServicos(doc: PDFKit.PDFDocument, yBase: number, lo:LaborModel[], la:LaborOsModel[]): {newY: number, totalServices: number} {
    desenharCabecalhoTabela(doc, yBase, 'Serviços Utilizados');
    let y = yBase + 40;
    let totalServices = 0;
 
-   let i  = 0;
-   for(i = 0; i < po.length; i++){
+   for (let i = 0; i < la.length; i++) {
       y = checarNovaPagina(doc, y);
-      const result = pa.find(p => p.idPart === po[i].idPart);
+      const laborOs = la[i];
+      const laborInfo = lo.find(l => l.id === laborOs.idLabor);
 
       doc.fontSize(9).font('Helvetica').fillColor(COLORS.text).text(`${i+1}`, 45, y);
-      doc.font('Helvetica-Bold').text(`${result?.namePart}`, 80, y);
+      doc.font('Helvetica-Bold').text(`${laborInfo?.labor ?? laborInfo?.labor ?? ''}`, 80, y);
       doc.font('Helvetica').fillColor(COLORS.lightText).fontSize(7.5);
       doc.fontSize(9).fillColor(COLORS.text);
-      doc.text(`${po[i].amount}`, 350, y, { width: 30, align: 'center' });
-      doc.text(`${formatarMoeda(po[i].unitPrice)}`, 400, y, { width: 70, align: 'right' });
-      let total = po[i].unitPrice * po[i].amount;
+      // Serviços normalmente não têm quantidade, considerar 1
+      doc.text(`1`, 350, y, { width: 30, align: 'center' });
+      doc.text(`${formatarMoeda(laborOs.value)}`, 400, y, { width: 70, align: 'right' });
+      let total = laborOs.value;
       doc.text(`${formatarMoeda(total)}`, 480, y, { width: 70, align: 'right' });
       doc.moveTo(40, y + 25).lineTo(555, y + 25).lineWidth(1).stroke(COLORS.border);
 
-      totalServices += total
-      
+      totalServices += total;
       y += 35;
    }
 

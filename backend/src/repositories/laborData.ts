@@ -9,12 +9,12 @@ export const selectLabors = async ():Promise<LaborModel[]> => {
     return result.rows
 };
 
-export const selectLaborById = async (idLabor:number):Promise<LaborModel | null> => {
+export const selectLaborById = async (idLabor:number):Promise<LaborModel[] | null> => {
     const result = await pool.query<LaborModel>(
         `SELECT * FROM labor WHERE id_labor = $1`, [idLabor]
     );
 
-    return result.rows[0] ?? null;
+    return result.rows ?? null;
 };
 
 export const postLabor = async (bodyValue:LaborModel):Promise<LaborModel> => {
