@@ -84,4 +84,20 @@ export const deleteOrderLabor = async (req:Request, res:Response) => {
     res.status(httpResponse.status).json(httpResponse.body);
 };
 
-export const generatePdf = async (req:Request, res:Response) => {};
+export const getOrderParts = async (req: Request, res: Response) => {
+    const idSo = parseInt(req.params.id as string);
+    const httpResponse = await oss.getOrderPartsService(idSo);
+    res.status(httpResponse.status).json(httpResponse.body);
+};
+
+export const getOrderLabor = async (req: Request, res: Response) => {
+    const idSo = parseInt(req.params.id as string);
+    const httpResponse = await oss.getOrderLaborService(idSo);
+    res.status(httpResponse.status).json(httpResponse.body);
+};
+
+export const generatePdf = async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id as string);
+    const httpResponse = await oss.generatePdfService(id);
+    res.status(httpResponse.status).json(httpResponse.body);
+};

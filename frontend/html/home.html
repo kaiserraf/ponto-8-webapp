@@ -53,6 +53,23 @@
         </svg>
         Peças
       </a>
+      <span class="sidebar__section">Oficina</span>
+      <a href="listOS.html" class="nav-link">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+          <rect x="9" y="3" width="6" height="4" rx="2"/>
+          <line x1="9" y1="12" x2="15" y2="12"/>
+          <line x1="9" y1="16" x2="12" y2="16"/>
+        </svg>
+        Ordens de Serviço
+      </a>
+      <a href="listLabor.html" class="nav-link">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+        </svg>
+        Serviços
+      </a>
       <span class="sidebar__section">Sistema</span>
       <a href="#" class="nav-link" id="btn-logout">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -94,6 +111,16 @@
           <div class="stat-card__value" id="count-stock">—</div>
           <div class="stat-card__sub">unidades</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Ordens de Serviço</div>
+          <div class="stat-card__value" id="count-os">—</div>
+          <div class="stat-card__sub">abertas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">Serviços</div>
+          <div class="stat-card__value" id="count-labors">—</div>
+          <div class="stat-card__sub">no catálogo</div>
+        </div>
       </div>
 
       <div class="page-header" style="margin-top:32px; margin-bottom:16px;">
@@ -102,33 +129,93 @@
       </div>
 
       <div style="display:flex;gap:12px;flex-wrap:wrap; margin-bottom: 32px;">
-        <a href="listClient.html" class="btn btn-primary">Clientes</a>
+        <a href="listOS.html" class="btn btn-primary">Nova OS</a>
+        <a href="listClient.html" class="btn btn-ghost">Clientes</a>
         <a href="listVehicle.html" class="btn btn-ghost">Veículos</a>
         <a href="listParts.html" class="btn btn-ghost">Peças</a>
+        <a href="listLabor.html" class="btn btn-ghost">Serviços</a>
       </div>
+
+      <!-- Recent OS table -->
+      <div class="page-header" style="margin-bottom:16px;">
+        <h2 style="font-family:var(--font-display);font-size:24px;letter-spacing:1px;color:var(--white-dim)">ÚLTIMAS OS</h2>
+        <a href="listOS.html" class="btn btn-ghost btn-sm">Ver todas</a>
+      </div>
+      <div class="table-wrap">
+        <div id="recent-os-wrap"><div class="spinner"></div></div>
+      </div>
+    </main>
   </div>
 
   <script type="module">
     import { logout } from '../js/authGuard.js';
-    import { getClients, getVehicles, getParts } from '../js/api.js';
+    import { getClients, getVehicles, getParts, getOs, getLabors } from '../js/api.js';
 
     document.getElementById('btn-logout').onclick = (e) => {
       e.preventDefault();
       logout();
     };
 
-    async function loadDashboard() {
-      const [cRes, vRes, pRes] = await Promise.all([getClients(), getVehicles(), getParts()]);
-      const clients = cRes.data || [];
-      const vehicles = vRes.data || [];
-      const parts = pRes.data || [];
+    const brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const fmtDate = (d) => d ? new Date(d).toLocaleDateString('pt-BR') : '—';
 
-      document.getElementById('count-clients').textContent = clients.length;
+    async function loadDashboard() {
+      const [cRes, vRes, pRes, osRes, lRes] = await Promise.all([
+        getClients(), getVehicles(), getParts(), getOs(), getLabors()
+      ]);
+
+      const clients = cRes.data  || [];
+      const vehicles = vRes.data || [];
+      const parts    = pRes.data || [];
+      const orders   = osRes.data || [];
+      const labors   = lRes.data || [];
+
+      document.getElementById('count-clients').textContent  = clients.length;
       document.getElementById('count-vehicles').textContent = vehicles.length;
-      document.getElementById('count-parts').textContent = parts.length;
+      document.getElementById('count-parts').textContent    = parts.length;
+      document.getElementById('count-os').textContent       = orders.length;
+      document.getElementById('count-labors').textContent   = labors.length;
 
       const totalStock = parts.reduce((acc, p) => acc + (p.amount || 0), 0);
       document.getElementById('count-stock').textContent = totalStock;
+
+      // Build client map for the recent OS table
+      const clientMap = {};
+      clients.forEach(c => { clientMap[c.id] = c.name; });
+
+      // Show last 5 OS
+      const wrap   = document.getElementById('recent-os-wrap');
+      const recent = [...orders].reverse().slice(0, 5);
+
+      if (!recent.length) {
+        wrap.innerHTML = '<div class="empty-state"><div class="empty-state__icon">📋</div><h3>Nenhuma OS criada ainda</h3></div>';
+        return;
+      }
+
+      const rows = recent.map(os => {
+        const id         = os.id ?? os.idSo;
+        const clientName = clientMap[os.idClient] ?? `#${os.idClient}`;
+        const total      = brl(os.totalPrice ?? os.total_price ?? 0);
+        const date       = fmtDate(os.createdAt ?? os.created_at);
+        const hasPdf     = !!(os.pdfPath ?? os.pdf_path);
+        const chip       = hasPdf
+          ? `<span class="chip" style="background:rgba(72,199,116,.1);color:#48c774;border-color:rgba(72,199,116,.25)">PDF ✓</span>`
+          : `<span class="chip">Aberta</span>`;
+        return `<tr>
+          <td class="td-id">#${id}</td>
+          <td>${clientName}</td>
+          <td style="font-size:12px;color:var(--gray-light)">${(os.description || '').slice(0,50)}${(os.description || '').length > 50 ? '...' : ''}</td>
+          <td>${total}</td>
+          <td>${date}</td>
+          <td>${chip}</td>
+          <td><a href="listOS.html" class="btn btn-ghost btn-sm">Ver</a></td>
+        </tr>`;
+      }).join('');
+
+      wrap.innerHTML = `<table>
+        <thead><tr><th>ID</th><th>Cliente</th><th>Descrição</th><th>Total</th><th>Data</th><th>Status</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
     }
 
     loadDashboard();

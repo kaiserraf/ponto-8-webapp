@@ -1,9 +1,9 @@
-import { LaborModel } from '../Models/laborModel';
 import { LaborOsModel } from '../Models/laborOsModel';
 import { OSModel } from '../Models/OSModel';
 import { PartsOsModel } from '../Models/partsOsModel';
 import * as osd from '../repositories/osData';
 import * as hr from '../utils/http';
+import { gerarOsPdf } from './generatePdf';
 
 export const listOsService = async () => {
     try {
@@ -145,4 +145,38 @@ export const deleteOrderLaborService = async (idSo:number, idLabor:number) => {
     }
 };
 
-export const generatePdfService = async () => {};
+export const getOrderPartsService = async (idSo: number) => {
+    try {
+        const data = await osd.findOpByIdSo(idSo);
+        if (data) return hr.ok(data);
+        return hr.noContent();
+    } catch (error) {
+        console.error(error);
+        return hr.internalServerError(error as Error);
+    }
+};
+
+export const getOrderLaborService = async (idSo: number) => {
+    try {
+        const data = await osd.findOlByIdSo(idSo);
+        if (data) return hr.ok(data);
+        return hr.noContent();
+    } catch (error) {
+        console.error(error);
+        return hr.internalServerError(error as Error);
+    }
+};
+
+export const generatePdfService = async (idSo: number) => {
+    try {
+        const caminho = await gerarOsPdf(idSo);
+        const nomeArquivo = caminho.replace(/\\/g, '/').split('/').pop();
+        const pdfPath = `/pdfs/${nomeArquivo}`;
+        await osd.updatePath(pdfPath, idSo);
+        const data = await osd.findOSById(idSo);
+        return hr.ok(data);
+    } catch (error) {
+        console.error(error);
+        return hr.internalServerError(error as Error);
+    }
+};

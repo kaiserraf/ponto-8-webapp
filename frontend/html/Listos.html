@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ordens de Serviço | Ponto 8</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="icon" href="../img/logo8.png">
+  <style>
+    /* OS Detail Panel */
+    .os-detail-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 200;
+      display: flex;
+      align-items: stretch;
+      justify-content: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .os-detail-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .os-detail-panel {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      width: 100%;
+      max-width: 560px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      overflow-y: auto;
+    }
+    .os-detail-overlay.open .os-detail-panel {
+      transform: translateX(0);
+    }
+    .os-detail-header {
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .os-detail-header h2 {
+      font-family: var(--font-display);
+      font-size: 24px;
+      letter-spacing: 1px;
+      color: var(--white);
+    }
+    .os-detail-body {
+      padding: 24px 28px;
+      flex: 1;
+    }
+    .os-section {
+      margin-bottom: 24px;
+    }
+    .os-section__title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray-light);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .os-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .os-info-item {}
+    .os-info-item__label {
+      font-size: 11px;
+      color: var(--gray-light);
+      margin-bottom: 2px;
+      font-weight: 500;
+    }
+    .os-info-item__value {
+      font-size: 14px;
+      color: var(--white);
+      font-weight: 500;
+    }
+    .os-line-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .os-line-item {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .os-line-item__name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--white);
+      flex: 1;
+    }
+    .os-line-item__qty {
+      font-size: 12px;
+      color: var(--gray-light);
+      min-width: 40px;
+      text-align: center;
+    }
+    .os-line-item__price {
+      font-size: 13px;
+      color: var(--yellow);
+      font-weight: 600;
+      min-width: 90px;
+      text-align: right;
+    }
+    .os-line-item__delete {
+      background: none;
+      border: none;
+      color: var(--gray-light);
+      cursor: pointer;
+      padding: 2px 4px;
+      font-size: 14px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .os-line-item__delete:hover { color: #e05555; }
+    .os-add-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .os-add-row select,
+    .os-add-row input {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 13px;
+      padding: 8px 10px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .os-add-row select:focus,
+    .os-add-row input:focus { border-color: var(--yellow); }
+    .os-add-row select { flex: 2; }
+    .os-add-row input { flex: 1; min-width: 60px; }
+    .os-add-row select option { background: var(--surface-2); }
+    .os-total-bar {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .os-total-bar__label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gray-light);
+    }
+    .os-total-bar__value {
+      font-family: var(--font-display);
+      font-size: 28px;
+      color: var(--yellow);
+      letter-spacing: 1px;
+    }
+    .os-detail-footer {
+      padding: 16px 28px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      position: sticky;
+      bottom: 0;
+      background: var(--surface);
+    }
+    /* Status chips */
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .status-chip--open {
+      background: rgba(245,197,24,0.12);
+      color: var(--yellow);
+      border: 1px solid rgba(245,197,24,0.25);
+    }
+    .status-chip--done {
+      background: rgba(72,199,116,0.12);
+      color: #48c774;
+      border: 1px solid rgba(72,199,116,0.25);
+    }
+    .empty-line {
+      padding: 16px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--gray-light);
+      font-style: italic;
+    }
+    /* Modal wider for OS */
+    #modal-create .modal {
+      max-width: 600px;
+    }
+    .form-group textarea {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+      resize: vertical;
+      min-height: 80px;
+    }
+    .form-group textarea:focus { border-color: var(--yellow); }
+    .form-group textarea::placeholder { color: var(--gray-light); }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+
+  <header class="topbar">
+    <span class="topbar__logo">PONTO 8 MOTORS</span>
+    <span class="topbar__subtitle">Ordens de Serviço</span>
+  </header>
+
+  <nav class="sidebar">
+    <span class="sidebar__section">Navegação</span>
+    <a href="home.html" class="nav-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Dashboard
+    </a>
+    <span class="sidebar__section">Cadastros</span>
+    <a href="listClient.html" class="nav-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Clientes
+    </a>
+    <a href="listVehicle.html" class="nav-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="1" y="3" width="15" height="13" rx="2"/>
+        <path d="M16 8h4l3 3v5h-7V8z"/>
+        <circle cx="5.5" cy="18.5" r="2.5"/>
+        <circle cx="18.5" cy="18.5" r="2.5"/>
+      </svg>
+      Veículos
+    </a>
+    <a href="listParts.html" class="nav-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+      </svg>
+      Peças
+    </a>
+    <span class="sidebar__section">Oficina</span>
+    <a href="listOS.html" class="nav-link active">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+        <rect x="9" y="3" width="6" height="4" rx="2"/>
+        <line x1="9" y1="12" x2="15" y2="12"/>
+        <line x1="9" y1="16" x2="12" y2="16"/>
+      </svg>
+      Ordens de Serviço
+    </a>
+    <a href="listLabor.html" class="nav-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+      </svg>
+      Serviços
+    </a>
+    <span class="sidebar__section">Sistema</span>
+    <a href="#" class="nav-link" id="btn-logout">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+      Sair
+    </a>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">OR<span>DENS</span></h1>
+        <p class="page-meta" id="meta-count">Carregando...</p>
+      </div>
+      <button class="btn btn-primary" id="btn-new">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nova OS
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="search-input" placeholder="Buscar por cliente ou descrição..." />
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div id="table-wrap"><div class="spinner"></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL CRIAR OS -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title">NOVA OS</h2>
+      <button class="modal__close" id="close-create">✕</button>
+    </div>
+    <form id="form-create" autocomplete="off">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="c-client">Cliente</label>
+          <select id="c-client" name="idClient" required>
+            <option value="">Selecione um cliente...</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label for="c-vehicle">Veículo</label>
+          <select id="c-vehicle" name="idVehicle" required>
+            <option value="">Selecione um veículo...</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label for="c-mechanic">Mecânico responsável (ID do usuário)</label>
+          <input id="c-mechanic" name="mechanic" type="number" placeholder="Ex: 1" required />
+        </div>
+        <div class="form-group full">
+          <label for="c-price">Valor total (R$)</label>
+          <input id="c-price" name="totalPrice" type="number" step="0.01" placeholder="0.00" required />
+        </div>
+        <div class="form-group full">
+          <label for="c-desc">Descrição / Laudo</label>
+          <textarea id="c-desc" name="description" placeholder="Descreva o problema e o serviço a ser realizado..." required></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" id="cancel-create">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Abrir OS</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL EDITAR OS -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title">EDITAR OS</h2>
+      <button class="modal__close" id="close-edit">✕</button>
+    </div>
+    <form id="form-edit" autocomplete="off">
+      <input type="hidden" id="e-id" />
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="e-client">Cliente</label>
+          <select id="e-client" name="idClient">
+            <option value="">Selecione um cliente...</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label for="e-vehicle">Veículo</label>
+          <select id="e-vehicle" name="idVehicle">
+            <option value="">Selecione um veículo...</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label for="e-mechanic">Mecânico responsável (ID)</label>
+          <input id="e-mechanic" name="mechanic" type="number" />
+        </div>
+        <div class="form-group full">
+          <label for="e-price">Valor total (R$)</label>
+          <input id="e-price" name="totalPrice" type="number" step="0.01" />
+        </div>
+        <div class="form-group full">
+          <label for="e-desc">Descrição / Laudo</label>
+          <textarea id="e-desc" name="description"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" id="cancel-edit">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-box__icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6"/><path d="M14 11v6"/>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+      </svg>
+    </div>
+    <div class="confirm-box__title">ENCERRAR OS</div>
+    <div class="confirm-box__label">
+      Tem certeza que deseja remover a <strong id="confirm-name"></strong>?<br/>
+      Esta ação não pode ser desfeita.
+    </div>
+    <div class="confirm-box__actions">
+      <button class="btn btn-ghost" id="confirm-cancel">Cancelar</button>
+      <button class="btn btn-danger" id="confirm-ok">Remover</button>
+    </div>
+  </div>
+</div>
+
+<!-- OS DETAIL SIDE PANEL -->
+<div class="os-detail-overlay" id="os-detail-overlay">
+  <div class="os-detail-panel" id="os-detail-panel">
+    <div class="os-detail-header">
+      <h2 id="detail-title">OS #—</h2>
+      <button class="modal__close" id="close-detail">✕</button>
+    </div>
+
+    <div class="os-detail-body">
+      <!-- Info -->
+      <div class="os-section">
+        <div class="os-section__title">Informações</div>
+        <div class="os-info-grid" id="detail-info"></div>
+      </div>
+
+      <!-- Peças -->
+      <div class="os-section">
+        <div class="os-section__title">Peças utilizadas</div>
+        <div class="os-line-items" id="detail-parts"></div>
+        <div class="os-add-row" id="add-part-row">
+          <select id="add-part-select">
+            <option value="">Selecione uma peça...</option>
+          </select>
+          <input id="add-part-qty" type="number" min="1" value="1" placeholder="Qtd" />
+          <input id="add-part-price" type="number" step="0.01" placeholder="Preço unit." />
+          <button class="btn btn-primary btn-sm" id="btn-add-part">+</button>
+        </div>
+      </div>
+
+      <!-- Serviços -->
+      <div class="os-section">
+        <div class="os-section__title">Serviços realizados</div>
+        <div class="os-line-items" id="detail-labors"></div>
+        <div class="os-add-row" id="add-labor-row">
+          <select id="add-labor-select">
+            <option value="">Selecione um serviço...</option>
+          </select>
+          <input id="add-labor-price" type="number" step="0.01" placeholder="Valor" />
+          <button class="btn btn-primary btn-sm" id="btn-add-labor">+</button>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="os-section">
+        <div class="os-section__title">Total</div>
+        <div class="os-total-bar">
+          <span class="os-total-bar__label">Valor Total da OS</span>
+          <span class="os-total-bar__value" id="detail-total">R$ 0,00</span>
+        </div>
+      </div>
+
+      <!-- PDF -->
+      <div class="os-section">
+        <div class="os-section__title">Documento</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-ghost" id="btn-gen-pdf">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            Gerar PDF
+          </button>
+          <span id="pdf-link-wrap" style="font-size:13px;color:var(--gray-light)"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="os-detail-footer">
+      <button class="btn btn-ghost btn-sm" id="detail-btn-edit">Editar OS</button>
+      <button class="btn btn-danger btn-sm" id="detail-btn-delete">Remover OS</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { logout } from '../js/authGuard.js';
+  import {
+    getOs, createOs, updateOs, deleteOs,
+    getClients, getVehicles,
+    getParts, getLabors,
+    getOsParts, getOsLabors,
+    addPartToOs, removePartFromOs,
+    addLaborToOs, removeLaborFromOs,
+    generateOsPdf
+  } from '../js/api.js';
+  import { toast, openModal, closeModal, bindModalOverlayClose } from '../js/ui.js';
+
+  document.getElementById('btn-logout').onclick = (e) => { e.preventDefault(); logout(); };
+
+  let allOS        = [];
+  let clientMap    = {};
+  let vehicleMap   = {};
+  let allClients   = [];
+  let allVehicles  = [];
+  let allParts     = [];
+  let allLabors    = [];
+  let pendingDeleteId = null;
+  let currentOsId  = null;
+  let currentOsParts  = [];
+  let currentOsLabors = [];
+
+  const brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const fmtDate = (d) => d ? new Date(d).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' }) : '—';
+
+  // ---- Modal bindings ----
+  bindModalOverlayClose('modal-create');
+  bindModalOverlayClose('modal-edit');
+  document.getElementById('close-create').onclick  = () => closeModal('modal-create');
+  document.getElementById('cancel-create').onclick = () => closeModal('modal-create');
+  document.getElementById('close-edit').onclick    = () => closeModal('modal-edit');
+  document.getElementById('cancel-edit').onclick   = () => closeModal('modal-edit');
+
+  document.getElementById('btn-new').onclick = () => {
+    document.getElementById('form-create').reset();
+    openModal('modal-create');
+  };
+
+  // ---- Confirm delete ----
+  const confirmOverlay = document.getElementById('confirm-overlay');
+  confirmOverlay.addEventListener('click', (e) => { if (e.target === confirmOverlay) closeConfirm(); });
+  document.getElementById('confirm-cancel').onclick = closeConfirm;
+  document.getElementById('confirm-ok').onclick = async () => {
+    if (pendingDeleteId === null) return;
+    const id = pendingDeleteId;
+    closeConfirm();
+    const { ok } = await deleteOs(id);
+    if (ok) { toast('OS removida.'); await loadOS(); closeDetail(); }
+    else toast('Erro ao remover OS.', 'error');
+  };
+
+  function openConfirm(id, label) {
+    pendingDeleteId = id;
+    document.getElementById('confirm-name').textContent = label;
+    confirmOverlay.classList.add('open');
+  }
+  function closeConfirm() { pendingDeleteId = null; confirmOverlay.classList.remove('open'); }
+
+  // ---- Detail Panel ----
+  const detailOverlay = document.getElementById('os-detail-overlay');
+  detailOverlay.addEventListener('click', (e) => { if (e.target === detailOverlay) closeDetail(); });
+  document.getElementById('close-detail').onclick = closeDetail;
+
+  function closeDetail() {
+    detailOverlay.classList.remove('open');
+    currentOsId = null;
+  }
+
+  async function openDetail(osId) {
+    currentOsId = osId;
+    detailOverlay.classList.add('open');
+    await refreshDetail();
+  }
+
+  async function refreshDetail() {
+    const os = allOS.find(o => o.id === currentOsId || o.idSo === currentOsId);
+    if (!os) return;
+    const id = os.id ?? os.idSo;
+
+    document.getElementById('detail-title').textContent = `OS #${id}`;
+
+    // Info grid
+    const clientName  = clientMap[os.idClient]  ?? `#${os.idClient}`;
+    const vehicleInfo = vehicleMap[os.idVehicle] ?? `#${os.idVehicle}`;
+    document.getElementById('detail-info').innerHTML = `
+      <div class="os-info-item">
+        <div class="os-info-item__label">Cliente</div>
+        <div class="os-info-item__value">${clientName}</div>
+      </div>
+      <div class="os-info-item">
+        <div class="os-info-item__label">Veículo</div>
+        <div class="os-info-item__value">${vehicleInfo}</div>
+      </div>
+      <div class="os-info-item">
+        <div class="os-info-item__label">Mecânico (ID)</div>
+        <div class="os-info-item__value">${os.mechanic ?? '—'}</div>
+      </div>
+      <div class="os-info-item">
+        <div class="os-info-item__label">Abertura</div>
+        <div class="os-info-item__value">${fmtDate(os.createdAt)}</div>
+      </div>
+      <div class="os-info-item" style="grid-column:1/-1">
+        <div class="os-info-item__label">Descrição</div>
+        <div class="os-info-item__value" style="color:var(--white-dim);font-size:13px;font-weight:400">${os.description || '—'}</div>
+      </div>`;
+
+    // Parts
+    const partsRes  = await getOsParts(id);
+    currentOsParts  = partsRes.data || [];
+    renderDetailParts(id);
+
+    // Labors
+    const laborsRes = await getOsLabors(id);
+    currentOsLabors = laborsRes.data || [];
+    renderDetailLabors(id);
+
+    // Total
+    updateDetailTotal(os);
+
+    // PDF link
+    const pdfWrap = document.getElementById('pdf-link-wrap');
+    if (os.pdfPath) {
+      const filename = os.pdfPath.split(/[\\/]/).pop();
+      pdfWrap.innerHTML = `<a href="/pdfs/${filename}" target="_blank" style="color:var(--yellow);text-decoration:underline">Abrir PDF</a>`;
+    } else {
+      pdfWrap.textContent = 'PDF ainda não gerado.';
+    }
+
+    // Wire footer buttons
+    document.getElementById('detail-btn-edit').onclick   = () => openEditModal(id);
+    document.getElementById('detail-btn-delete').onclick = () => openConfirm(id, `OS #${id}`);
+  }
+
+  function updateDetailTotal(os) {
+    const partsTotal  = currentOsParts.reduce((s, p) => s + (p.unitPrice ?? p.unit_price ?? 0) * (p.amount ?? 1), 0);
+    const laborsTotal = currentOsLabors.reduce((s, l) => s + (l.unitPrice ?? l.unit_price ?? l.value ?? 0), 0);
+    const total = partsTotal + laborsTotal || os.totalPrice || os.total_price || 0;
+    document.getElementById('detail-total').textContent = brl(total);
+  }
+
+  function renderDetailParts(osId) {
+    const container = document.getElementById('detail-parts');
+    if (!currentOsParts.length) {
+      container.innerHTML = '<div class="empty-line">Nenhuma peça adicionada.</div>';
+      return;
+    }
+    container.innerHTML = currentOsParts.map(p => {
+      const partId  = p.idPart  ?? p.id_part;
+      const part    = allParts.find(x => (x.idPart ?? x.id_part) === partId);
+      const name    = part ? (part.namePart ?? part.name_part) : `Peça #${partId}`;
+      const qty     = p.amount ?? 1;
+      const price   = p.unitPrice ?? p.unit_price ?? 0;
+      return `<div class="os-line-item">
+        <span class="os-line-item__name">${name}</span>
+        <span class="os-line-item__qty">×${qty}</span>
+        <span class="os-line-item__price">${brl(price * qty)}</span>
+        <button class="os-line-item__delete" onclick="removePart(${osId},${partId})" title="Remover">✕</button>
+      </div>`;
+    }).join('');
+  }
+
+  function renderDetailLabors(osId) {
+    const container = document.getElementById('detail-labors');
+    if (!currentOsLabors.length) {
+      container.innerHTML = '<div class="empty-line">Nenhum serviço adicionado.</div>';
+      return;
+    }
+    container.innerHTML = currentOsLabors.map(l => {
+      const laborId = l.idLabor ?? l.id_labor;
+      const labor   = allLabors.find(x => (x.idLabor ?? x.id_labor) === laborId);
+      const name    = labor ? (labor.laborName ?? labor.labor_name) : `Serviço #${laborId}`;
+      const price   = l.unitPrice ?? l.unit_price ?? l.value ?? 0;
+      return `<div class="os-line-item">
+        <span class="os-line-item__name">${name}</span>
+        <span class="os-line-item__qty">×1</span>
+        <span class="os-line-item__price">${brl(price)}</span>
+        <button class="os-line-item__delete" onclick="removeLabor(${osId},${laborId})" title="Remover">✕</button>
+      </div>`;
+    }).join('');
+  }
+
+  // Add part to OS
+  document.getElementById('btn-add-part').onclick = async () => {
+    const select = document.getElementById('add-part-select');
+    const qty    = parseInt(document.getElementById('add-part-qty').value) || 1;
+    const price  = parseFloat(document.getElementById('add-part-price').value) || 0;
+    const partId = parseInt(select.value);
+    if (!partId || !currentOsId) return;
+
+    const body = { idSo: currentOsId, idPart: partId, amount: qty, unitPrice: price };
+    const { ok } = await addPartToOs(currentOsId, body);
+    if (ok) {
+      select.value = '';
+      document.getElementById('add-part-qty').value   = 1;
+      document.getElementById('add-part-price').value = '';
+      toast('Peça adicionada!');
+      await refreshDetail();
+    } else {
+      toast('Erro ao adicionar peça.', 'error');
+    }
+  };
+
+  // Add labor to OS
+  document.getElementById('btn-add-labor').onclick = async () => {
+    const select  = document.getElementById('add-labor-select');
+    const price   = parseFloat(document.getElementById('add-labor-price').value) || 0;
+    const laborId = parseInt(select.value);
+    if (!laborId || !currentOsId) return;
+
+    const body = { idSo: currentOsId, idLabor: laborId, value: price };
+    const { ok } = await addLaborToOs(currentOsId, body);
+    if (ok) {
+      select.value = '';
+      document.getElementById('add-labor-price').value = '';
+      toast('Serviço adicionado!');
+      await refreshDetail();
+    } else {
+      toast('Erro ao adicionar serviço.', 'error');
+    }
+  };
+
+  // Remove part
+  window.removePart = async (osId, partId) => {
+    const { ok } = await removePartFromOs(osId, partId);
+    if (ok) { toast('Peça removida.'); await refreshDetail(); }
+    else toast('Erro ao remover peça.', 'error');
+  };
+
+  // Remove labor
+  window.removeLabor = async (osId, laborId) => {
+    const { ok } = await removeLaborFromOs(osId, laborId);
+    if (ok) { toast('Serviço removido.'); await refreshDetail(); }
+    else toast('Erro ao remover serviço.', 'error');
+  };
+
+  // Generate PDF
+  document.getElementById('btn-gen-pdf').onclick = async () => {
+    if (!currentOsId) return;
+    const btn = document.getElementById('btn-gen-pdf');
+    btn.disabled = true;
+    btn.textContent = 'Gerando...';
+    const { ok, data } = await generateOsPdf(currentOsId);
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Gerar PDF`;
+    if (ok) {
+      toast('PDF gerado com sucesso!');
+      // Refresh OS list to pick up pdfPath
+      await loadOS();
+      await refreshDetail();
+    } else {
+      toast('Erro ao gerar PDF.', 'error');
+    }
+  };
+
+  // Edit modal from detail
+  function openEditModal(id) {
+    const os = allOS.find(o => (o.id ?? o.idSo) === id);
+    if (!os) return;
+    document.getElementById('e-id').value       = id;
+    document.getElementById('e-client').value   = os.idClient  ?? '';
+    document.getElementById('e-vehicle').value  = os.idVehicle ?? '';
+    document.getElementById('e-mechanic').value = os.mechanic  ?? '';
+    document.getElementById('e-price').value    = os.totalPrice ?? os.total_price ?? '';
+    document.getElementById('e-desc').value     = os.description ?? '';
+    openModal('modal-edit');
+  }
+
+  // Search
+  document.getElementById('search-input').addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    renderTable(allOS.filter(o => {
+      const clientName = clientMap[o.idClient] ?? '';
+      const desc       = (o.description ?? '').toLowerCase();
+      return clientName.toLowerCase().includes(q) || desc.includes(q) || String(o.id ?? o.idSo).includes(q);
+    }));
+  });
+
+  // ---- Load data ----
+  async function loadAll() {
+    const [cRes, vRes, pRes, lRes] = await Promise.all([
+      getClients(), getVehicles(), getParts(), getLabors()
+    ]);
+
+    if (cRes.ok && cRes.data) {
+      allClients = cRes.data;
+      clientMap  = {};
+      cRes.data.forEach(c => { clientMap[c.id] = c.name; });
+      const opts = cRes.data.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      const base = '<option value="">Selecione um cliente...</option>';
+      document.getElementById('c-client').innerHTML = base + opts;
+      document.getElementById('e-client').innerHTML = base + opts;
+    }
+
+    if (vRes.ok && vRes.data) {
+      allVehicles = vRes.data;
+      vehicleMap  = {};
+      vRes.data.forEach(v => {
+        const id    = v.idVehicle ?? v.id_vehicle;
+        const brand = v.vehicleBrand ?? v.vehicle_brand ?? '';
+        const model = v.vehicleModel ?? v.vehicle_model ?? '';
+        vehicleMap[id] = `${brand} ${model}`.trim();
+      });
+      const opts = vRes.data.map(v => {
+        const id    = v.idVehicle ?? v.id_vehicle;
+        const brand = v.vehicleBrand ?? v.vehicle_brand ?? '';
+        const model = v.vehicleModel ?? v.vehicle_model ?? '';
+        return `<option value="${id}">${brand} ${model}</option>`;
+      }).join('');
+      const base = '<option value="">Selecione um veículo...</option>';
+      document.getElementById('c-vehicle').innerHTML = base + opts;
+      document.getElementById('e-vehicle').innerHTML = base + opts;
+    }
+
+    if (pRes.ok && pRes.data) {
+      allParts = pRes.data;
+      const opts = pRes.data.map(p => {
+        const id   = p.idPart ?? p.id_part;
+        const name = p.namePart ?? p.name_part;
+        return `<option value="${id}">${name}</option>`;
+      }).join('');
+      document.getElementById('add-part-select').innerHTML =
+        '<option value="">Selecione uma peça...</option>' + opts;
+    }
+
+    if (lRes.ok && lRes.data) {
+      allLabors = lRes.data;
+      const opts = lRes.data.map(l => {
+        const id   = l.idLabor ?? l.id_labor;
+        const name = l.laborName ?? l.labor_name;
+        return `<option value="${id}">${name}</option>`;
+      }).join('');
+      document.getElementById('add-labor-select').innerHTML =
+        '<option value="">Selecione um serviço...</option>' + opts;
+    }
+  }
+
+  async function loadOS() {
+    const wrap = document.getElementById('table-wrap');
+    wrap.innerHTML = '<div class="spinner"></div>';
+    const { data, ok } = await getOs();
+    if (!ok || !data) { wrap.innerHTML = '<div class="empty-state"><h3>Erro ao carregar</h3></div>'; return; }
+    allOS = data;
+    document.getElementById('meta-count').textContent =
+      `${data.length} ordem${data.length !== 1 ? 's' : ''} de serviço`;
+    renderTable(data);
+  }
+
+  function renderTable(list) {
+    const wrap = document.getElementById('table-wrap');
+    if (!list.length) {
+      wrap.innerHTML = `<div class="empty-state"><div class="empty-state__icon">📋</div><h3>Nenhuma OS encontrada</h3></div>`;
+      return;
+    }
+    const rows = list.map(os => {
+      const id          = os.id ?? os.idSo;
+      const clientName  = clientMap[os.idClient]  ?? `#${os.idClient}`;
+      const vehicleInfo = vehicleMap[os.idVehicle] ?? `#${os.idVehicle}`;
+      const total       = brl(os.totalPrice ?? os.total_price ?? 0);
+      const date        = fmtDate(os.createdAt ?? os.created_at);
+      const hasPdf      = !!(os.pdfPath ?? os.pdf_path);
+      const pdfChip     = hasPdf
+        ? `<span class="chip" style="background:rgba(72,199,116,.1);color:#48c774;border-color:rgba(72,199,116,.25)">PDF ✓</span>`
+        : `<span class="chip" style="background:rgba(245,197,24,.08);color:var(--yellow);border-color:rgba(245,197,24,.2)">Aberta</span>`;
+      const desc = (os.description ?? '').slice(0, 40) + (os.description?.length > 40 ? '...' : '');
+      return `<tr style="cursor:pointer" onclick="viewDetail(${id})">
+        <td class="td-id">#${id}</td>
+        <td>${clientName}</td>
+        <td>${vehicleInfo}</td>
+        <td style="font-size:12px;color:var(--gray-light)">${desc}</td>
+        <td>${total}</td>
+        <td>${date}</td>
+        <td>${pdfChip}</td>
+        <td>
+          <div class="td-actions" onclick="event.stopPropagation()">
+            <button class="btn btn-ghost btn-sm" onclick="viewDetail(${id})">Ver</button>
+            <button class="btn btn-danger btn-sm" onclick="openConfirmDelete(${id})">Remover</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+    wrap.innerHTML = `<table>
+      <thead><tr>
+        <th>ID</th><th>Cliente</th><th>Veículo</th><th>Descrição</th><th>Total</th><th>Data</th><th>Status</th><th></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+
+  // Create OS
+  document.getElementById('form-create').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const body = {
+      idClient:   parseInt(fd.get('idClient')),
+      idVehicle:  parseInt(fd.get('idVehicle')),
+      mechanic:   parseInt(fd.get('mechanic')),
+      totalPrice: parseFloat(fd.get('totalPrice')),
+      description: fd.get('description'),
+      createdAt:  new Date().toISOString()
+    };
+    const { ok } = await createOs(body);
+    if (ok) { toast('OS criada!'); closeModal('modal-create'); await loadOS(); }
+    else toast('Erro ao criar OS.', 'error');
+  });
+
+  // Update OS
+  document.getElementById('form-edit').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = parseInt(document.getElementById('e-id').value);
+    const fd = new FormData(e.target);
+    const body = {};
+    const client  = fd.get('idClient');
+    const vehicle = fd.get('idVehicle');
+    const mech    = fd.get('mechanic');
+    const price   = fd.get('totalPrice');
+    const desc    = fd.get('description');
+    if (client)  body.idClient   = parseInt(client);
+    if (vehicle) body.idVehicle  = parseInt(vehicle);
+    if (mech)    body.mechanic   = parseInt(mech);
+    if (price)   body.totalPrice = parseFloat(price);
+    if (desc)    body.description = desc;
+    const { ok } = await updateOs(id, body);
+    if (ok) {
+      toast('OS atualizada!');
+      closeModal('modal-edit');
+      await loadOS();
+      if (currentOsId === id) await refreshDetail();
+    } else {
+      toast('Erro ao atualizar OS.', 'error');
+    }
+  });
+
+  // Expose globals for inline handlers
+  window.viewDetail         = openDetail;
+  window.openConfirmDelete  = (id) => openConfirm(id, `OS #${id}`);
+
+  // Init
+  await loadAll();
+  await loadOS();
+</script>
+
+</body>
+</html>

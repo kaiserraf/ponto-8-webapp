@@ -51,6 +51,9 @@ router.post('/os/post', authToken, osController.postOs);
 router.patch('/os/update/:id', authToken, osController.updateOs);
 router.patch('/os/pdfPath/:id', authToken, osController.updatePath);
 router.delete('/os/:id', authToken, osController.deleteOs);
+router.get('/os/:id/parts', authToken, osController.getOrderParts);
+router.get('/os/:id/labor', authToken, osController.getOrderLabor);
+router.post('/os/:id/pdf',  authToken, osController.generatePdf);
 
 // Parts|Labor OS
 router.post('/os/:id/parts', authToken, osController.insertOrderParts);
