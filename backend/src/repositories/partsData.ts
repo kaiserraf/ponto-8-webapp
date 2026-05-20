@@ -3,14 +3,14 @@ import { PartsModel } from "../Models/partsModel";
 
 export const findParts = async ():Promise<PartsModel[]> => {
     const result = await pool.query<PartsModel>(
-        `SELECT * FROM parts ORDER BY id_part`
+        `SELECT id_part AS "idPart", name_part AS "namePart", amount AS "amount", buy_value AS "buyValue", sale_value AS "saleValue" FROM parts ORDER BY id_part`
     );
     return result.rows;
 };
 
 export const findPartsByName = async (name:string):Promise<PartsModel[] | null> => {
     const result = await pool.query<PartsModel>(
-        `SELECT * FROM parts WHERE name_part = $1`,
+        `SELECT id_part AS "idPart", name_part AS "namePart", amount AS "amount", buy_value AS "buyValue", sale_value AS "saleValue" FROM parts WHERE name_part = $1`,
         [name]
     );
     return result.rows ?? null;
@@ -20,7 +20,7 @@ export const insertPart = async (part:PartsModel):Promise<PartsModel> => {
     const result = await pool.query<PartsModel>(
         `INSERT INTO parts (name_part, amount, buy_value, sale_value)
         VALUES ($1, $2, $3, $4)
-        RETURNING *`,
+        RETURNING id_part AS "idPart", name_part AS "namePart", amount AS "amount", buy_value AS "buyValue", sale_value AS "saleValue"`,
         [part.namePart, part.amount, part.buyValue, part.saleValue]
     );
     const p = result.rows[0];
@@ -62,7 +62,7 @@ export const updatePart = async (id:number, bodyValue:Partial<{
 
     const result = await pool.query<PartsModel>(
         `UPDATE parts SET ${field.join(',')} WHERE id_part = $${count}
-        RETURNING id_part, name_part, amount, buy_value, sale_value`,
+        RETURNING id_part AS "idPart", name_part AS "namePart", amount AS "amount", buy_value AS "buyValue", sale_value AS "saleValue"`,
         value
     );
 
@@ -73,7 +73,7 @@ export const deletePart = async (id:number):Promise<PartsModel | null> => {
     const result = await pool.query<PartsModel>(
         `DELETE FROM parts
         WHERE id_part = $1
-        RETURNING id_part, name_part, amount, buy_value, sale_value`,
+        RETURNING id_part AS "idPart", name_part AS "namePart", amount AS "amount", buy_value AS "buyValue", sale_value AS "saleValue"`,
         [id]
     );
 

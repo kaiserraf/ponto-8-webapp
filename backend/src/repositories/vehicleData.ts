@@ -3,14 +3,14 @@ import { VehicleModel } from "../Models/vehicleModel";
 
 export const findVehicle = async () => {
     const result = await pool.query<VehicleModel>(
-        `SELECT * FROM vehicles ORDER BY id_vehicle`
+        `SELECT id_vehicle AS "idVehicle", vehicle_model AS "vehicleModel", vehicle_brand AS "vehicleBrand", year AS "year", chassi AS "chassi", plate AS "plate", client_id AS "clientId" FROM vehicles ORDER BY id_vehicle`
     );
     return result.rows;
 };
 
 export const findVehicleById = async (id:number):Promise<VehicleModel | null> => {
     const result = await pool.query<VehicleModel>(
-        `SELECT * FROM vehicles WHERE id_vehicle = $1`,
+        `SELECT id_vehicle AS "idVehicle", vehicle_model AS "vehicleModel", vehicle_brand AS "vehicleBrand", year AS "year", chassi AS "chassi", plate AS "plate", client_id AS "clientId" FROM vehicles WHERE id_vehicle = $1`,
         [id]
     );
     return result.rows[0] ?? null;
@@ -24,7 +24,7 @@ export const insertVehicle = async (vehicle:VehicleModel) => {
             client_id
         )
         VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING *`,
+        RETURNING id_vehicle AS "idVehicle", vehicle_model AS "vehicleModel", vehicle_brand AS "vehicleBrand", year AS "year", chassi AS "chassi", plate AS "plate", client_id AS "clientId"`,
         [
             vehicle.vehicleModel,
             vehicle.vehicleBrand,
@@ -83,10 +83,7 @@ export const updateVehicle = async (id:number, bodyValue:Partial<{
 
     const result = await pool.query<VehicleModel>(
         `UPDATE vehicles SET ${field.join(',')} WHERE id_vehicle = $${count}
-        RETURNING 
-            id_vehicle, vehicle_model,
-            vehicle_brand, year, chassi,
-            plate, client_id`,
+        RETURNING id_vehicle AS "idVehicle", vehicle_model AS "vehicleModel", vehicle_brand AS "vehicleBrand", year AS "year", chassi AS "chassi", plate AS "plate", client_id AS "clientId"`,
         value
     );
 
@@ -97,10 +94,7 @@ export const deleteVehicle = async (id:number):Promise<VehicleModel | null> => {
     const result = await pool.query<VehicleModel>(
         `DELETE FROM vehicles
         WHERE id_vehicle = $1
-        RETURNING 
-            id_vehicle, vehicle_model,
-            vehicle_brand, year, chassi,
-            plate, client_id`,
+        RETURNING id_vehicle AS "idVehicle", vehicle_model AS "vehicleModel", vehicle_brand AS "vehicleBrand", year AS "year", chassi AS "chassi", plate AS "plate", client_id AS "clientId"`,
         [id]
     );
 

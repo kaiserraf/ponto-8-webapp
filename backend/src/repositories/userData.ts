@@ -5,7 +5,7 @@ export const registerUser = async (user:UserModel, time:Date, passwordHash:strin
     const result = await pool.query<UserModel>(
         `INSERT INTO users (name, email, password_hash, created_at)
         VALUES ($1, $2, $3, $4)
-        RETURNING *`,
+        RETURNING id AS "id", name AS "name", email AS "email", password_hash AS "passwordHash", created_at AS "createdAt"`,
         [user.name, user.email.toLowerCase().trim(), passwordHash, time]
     );
 
@@ -16,7 +16,7 @@ export const registerUser = async (user:UserModel, time:Date, passwordHash:strin
 
 export const loginUser = async (email:string):Promise<UserModel> => {
     const result = await pool.query<UserModel>(
-        `SELECT id, email, password_hash AS "passwordHash" FROM users WHERE email = $1`,
+        `SELECT id AS "id", email AS "email", password_hash AS "passwordHash" FROM users WHERE email = $1`,
         [email.toLowerCase().trim()]
     );
     return result.rows[0] ?? null;
@@ -32,7 +32,7 @@ export const saveRefreshToken = async (userId:number, token:string, expiresAt: D
 
 export const findRefreshToken = async (token:string) => {
     const result = await pool.query(
-        `SELECT * FROM refresh_tokens
+        `SELECT user_id AS "userId", token AS "token", expires_at AS "expiresAt" FROM refresh_tokens
         WHERE token = $1 AND expires_at > NOW()`,
         [token]
     );

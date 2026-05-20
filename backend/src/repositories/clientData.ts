@@ -3,14 +3,25 @@ import { ClientModel } from "../Models/clientModel";
 
 export const findClients = async ():Promise<ClientModel[]> => {
     const result = await pool.query<ClientModel>(
-        `SELECT * FROM clients ORDER BY id`
+        `SELECT id AS "id",
+        name AS "name",
+        address AS "address",
+        phone AS "phone",
+        cpf AS "cpf", email AS "email"
+        FROM clients ORDER BY id`
     );
     return result.rows;
 };
 
 export const findClientsByName = async (name:string):Promise<ClientModel | null> => {
     const result = await pool.query<ClientModel>(
-        `SELECT * FROM clients WHERE name = $1`,
+        `SELECT id AS "id",
+        name AS "name",
+        address AS "address",
+        phone AS "phone",
+        cpf AS "cpf",
+        email AS "email"
+        FROM clients WHERE name = $1`,
         [name]
     );
     return result.rows[0] ?? null;
@@ -20,7 +31,7 @@ export const insertClient = async (client:ClientModel):Promise<ClientModel> => {
     const result = await pool.query<ClientModel>(
         `INSERT INTO clients (name, address, phone, cpf, email)
          VALUES ($1, $2, $3, $4, $5)
-         RETURNING *`,
+         RETURNING id AS "id", name AS "name", address AS "address", phone AS "phone", cpf AS "cpf", email AS "email"`,
          [client.name, client.address, client.phone, client.cpf, client.email]
     );
     const c = result.rows[0];
@@ -67,7 +78,7 @@ export const updateClient = async (id:number, bodyValue:Partial<{
 
     const result = await pool.query<ClientModel>(
         `UPDATE clients SET ${field.join(',')} WHERE id = $${count}
-        RETURNING id, name, address, phone, cpf, email`,
+        RETURNING id AS "id", name AS "name", address AS "address", phone AS "phone", cpf AS "cpf", email AS "email"`,
         value
     );
     
@@ -78,7 +89,12 @@ export const deleteClient = async (id:number): Promise<ClientModel | null> => {
     const result = await pool.query<ClientModel>(
         `DELETE FROM clients
         WHERE id = $1
-        RETURNING *`,
+        RETURNING id AS "id",
+        name AS "name",
+        address AS "address",
+        phone AS "phone",
+        cpf AS "cpf",
+        email AS "email"`,
         [id]
     );
 

@@ -231,7 +231,7 @@ function gerarTabelaServicos(doc: PDFKit.PDFDocument, yBase: number, lo:LaborMod
       const laborInfo = lo.find(l => l.id === laborOs.idLabor);
 
       doc.fontSize(9).font('Helvetica').fillColor(COLORS.text).text(`${i+1}`, 45, y);
-      doc.font('Helvetica-Bold').text(`${laborInfo?.labor ?? laborInfo?.labor ?? ''}`, 80, y);
+      doc.font('Helvetica-Bold').text(`${laborInfo?.laborName ?? laborInfo?.laborName ?? ''}`, 80, y);
       doc.font('Helvetica').fillColor(COLORS.lightText).fontSize(7.5);
       doc.fontSize(9).fillColor(COLORS.text);
       // Serviços normalmente não têm quantidade, considerar 1

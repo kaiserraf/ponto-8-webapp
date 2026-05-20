@@ -49,14 +49,14 @@ router.get('/os', authToken, osController.getOs);
 router.get('/os/:id', authToken, osController.getOsById);
 router.post('/os/post', authToken, osController.postOs);
 router.patch('/os/update/:id', authToken, osController.updateOs);
-router.patch('os/pdfPath/:id', authToken, osController.updatePath);
+router.patch('/os/pdfPath/:id', authToken, osController.updatePath);
 router.delete('/os/:id', authToken, osController.deleteOs);
 
 // Parts|Labor OS
 router.post('/os/:id/parts', authToken, osController.insertOrderParts);
 router.delete('/os/:id/parts/:partId', authToken, osController.deleteOrderParts);
 
-router.post('/os/:id/labor', authToken);
-router.delete('/os/:id/labor/:laborId', authToken);
+router.post('/os/:id/labor', authToken, osController.insertOrderLabor);
+router.delete('/os/:id/labor/:laborId', authToken, osController.deleteOrderLabor);
 
 export default router;

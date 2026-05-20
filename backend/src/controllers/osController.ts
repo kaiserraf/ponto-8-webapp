@@ -65,8 +65,23 @@ export const deleteOrderParts = async (req:Request, res:Response) => {
     res.status(httpResponse.status).json(httpResponse.body);
 }
 
-export const insertOrderLabor = async (req:Request, res:Response) => {};
+export const insertOrderLabor = async (req:Request, res:Response) => {
+    const bodyValue = req.body;
+    const httpResponse = await oss.insertOrderLaborService(bodyValue);
 
-export const deleteOrderLabor = async (req:Request, res:Response) => {};
+    if(httpResponse) res.status(httpResponse.status).json(httpResponse.body);
+    else{
+        const response = await badRequest();
+        res.status(response.status).json(response.body);
+    }
+};
+
+export const deleteOrderLabor = async (req:Request, res:Response) => {
+    const idSo = parseInt(req.params.id as string);
+    const idLabor = parseInt(req.params.laborId as string);
+    const httpResponse = await oss.deleteOrderLaborService(idSo, idLabor);
+
+    res.status(httpResponse.status).json(httpResponse.body);
+};
 
 export const generatePdf = async (req:Request, res:Response) => {};
