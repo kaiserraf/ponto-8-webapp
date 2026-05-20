@@ -69,7 +69,6 @@ CREATE TABLE order_parts (
     unit_price   NUMERIC(10,2)  NOT NULL
 );
 
-
 -- Catálogo de serviços da oficina
 CREATE TABLE labors (
     id_labor    SERIAL PRIMARY KEY,

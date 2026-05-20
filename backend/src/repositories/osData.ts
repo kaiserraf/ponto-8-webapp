@@ -1,4 +1,5 @@
 import pool from '../config/db';
+import { LaborOsModel } from '../Models/laborOsModel';
 import { OSModel } from '../Models/OSModel';
 import { PartsOsModel } from '../Models/partsOsModel';
 
@@ -145,10 +146,33 @@ export const deleteOP = async (idSo:number, idPart:number):Promise<PartsOsModel>
 };
 
 // insere serviço em order_labor
-export const insertOL = async () => {};
+export const insertOL = async (labor:LaborOsModel) => {
+    const result = await pool.query(
+        `INSERT INTO order_labor (id_so, id_labor, amount, unit_price)
+        VALUES ($1, $2, $3, $4)
+        RETURNING *`, [labor.idSo, labor.idLabor, 1, labor.value] // quantidade sempre vai ser 1
+    );
+
+    const ol = await result.rows[0];
+    if(!ol) throw new Error ("Falha ao inserir serviço na OS");
+    return ol;
+};
 
 // encontra serviço pelo id
-export const findOlByIdSo = async () => {};
+export const findOlByIdSo = async (id:number) => {
+    const result = await pool.query(
+        `SELECT * FROM order_labor WHERE id_so  = $1`, [id]
+    );
+    return result.rows;
+};
 
 // delete serviços em order_labor
-export const deleteOL = async () => {};
+export const deleteOL = async (idSo:number, idLabor:number):Promise<LaborOsModel> => {
+    const result = await pool.query<LaborOsModel>(
+        `DELETE FROM order_labor
+        WHERE id_labor = $1 AND id_so = $2
+        RETURNING *`, [idLabor, idSo]
+    );
+
+    return result.rows[0] ?? null;
+};

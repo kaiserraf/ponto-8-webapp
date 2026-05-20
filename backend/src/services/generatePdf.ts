@@ -1,14 +1,18 @@
 import PDFDocument from 'pdfkit';
 import * as fs from 'fs';
-import {findClientsByName} from '../repositories/clientData';
-import {findVehicleById} from '../repositories/vehicleData';
-import {findOSById, findOpByIdSo } from '../repositories/osData';
+import  {findClientsByName} from '../repositories/clientData';
+import { findVehicleById} from '../repositories/vehicleData';
+import { findOSById, findOpByIdSo } from '../repositories/osData';
+import { findPartsByName } from '../repositories/partsData';
+import { selectLaborById, selectLabors } from '../repositories/laborData';
 import { OSModel } from '../Models/OSModel';
 import { ClientModel } from '../Models/clientModel';
 import { VehicleModel } from '../Models/vehicleModel';
 import { PartsOsModel } from '../Models/partsOsModel';
-import { findPartsByName } from '../repositories/partsData';
 import { PartsModel } from '../Models/partsModel';
+import { LaborModel } from '../Models/laborModel'
+import { LaborOsModel } from '../Models/laborOsModel'
+
 
 
 // Cores base da identidade da Ponto 8
@@ -20,7 +24,7 @@ const COLORS = {
    border: '#e0e0e0'
 };
 
-export const variables = async(name:string, vehicle:number, idOs:number, parts:string) => {
+export const variables = async(name:string, vehicle:number, idOs:number, parts:string, idLabor:number) => {
    const client = await findClientsByName(name);
    if(!client) throw new Error("Impossivel gerar o PDF - não foi possivel acessar clientes");
 
@@ -36,7 +40,10 @@ export const variables = async(name:string, vehicle:number, idOs:number, parts:s
    const partsdb = await findPartsByName(parts);
    if(!partsdb) throw new Error("Impossivel gerar o PDF - não foi possivel acessar peças");
 
-   await generatePdf(os, client, vehicledb, orderParts, partsdb);
+   const orderLabor = await selectLaborById(idLabor);
+   if(!orderLabor) throw new Error("Impossivel gerar o PDF - não foi possivel acessar serviços");
+
+   generatePdf(os, client, vehicledb, orderParts, partsdb, orderLabor);
 }
 
 function checarNovaPagina(doc: PDFKit.PDFDocument, y: number, alturaLinha: number = 35): number {
@@ -65,7 +72,7 @@ function formatarMoeda(value: number): string {
    });
 }
 
-export const  generatePdf = (os:OSModel, client:ClientModel, vehicle:VehicleModel, orderParts:PartsOsModel[], parts:PartsModel[]) => {
+export const  generatePdf = (os:OSModel, client:ClientModel, vehicle:VehicleModel, orderParts:PartsOsModel[], parts:PartsModel[], labor:LaborModel) => {
    const doc = new PDFDocument({ size: 'A4', margin: 40 });
    const clientName = client.name.replace(/ /g, "_");
    const writeStream = fs.createWriteStream(`OS_${os.id}_${clientName}.pdf`);
@@ -176,7 +183,7 @@ function desenharCabecalhoTabela(doc: PDFKit.PDFDocument, y: number, titulo: str
    doc.moveTo(40, y + 33).lineTo(555, y + 33).lineWidth(1).stroke(COLORS.border);
 }
 
-function gerarTabelaProdutos(doc: PDFKit.PDFDocument, yBase: number, po:PartsOsModel[], pa:PartsModel[]): {newY: number, totalProducts: number} {
+function gerarTabelaProdutos(doc:PDFKit.PDFDocument, yBase:number, po:PartsOsModel[], pa:PartsModel[]):{newY: number, totalProducts: number} {
    desenharCabecalhoTabela(doc, yBase, 'Produtos Utilizados');
    let y = yBase + 40;
    let totalProducts = 0;
