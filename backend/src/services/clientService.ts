@@ -18,9 +18,9 @@ export const listClientService = async () => {
     }
 }
 
-export const getClientByNameService = async (name:string) => {
+export const getClientByIdService = async (id:number) => {
     try{
-        const data = await cd.findClientsByName(name);
+        const data = await cd.findClientById(id);
         let response = null;
 
         if(data) response = await hr.ok(data);

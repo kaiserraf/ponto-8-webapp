@@ -9,9 +9,9 @@ export const getClient = async (req:Request, res:Response) => {
     res.status(httpResponse.status).json(httpResponse.body);
 };
 
-export const getClientByName = async (req:Request, res:Response) => {
-    const name = req.params.name as string;
-    const httpResponse = await cs.getClientByNameService(name);
+export const getClientById = async (req:Request, res:Response) => {
+    const id = parseInt(req.params.id as string);
+    const httpResponse = await cs.getClientByIdService(id);
     res.status(httpResponse.status).json(httpResponse.body);
 };
 

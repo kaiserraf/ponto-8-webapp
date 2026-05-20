@@ -8,10 +8,15 @@ export const findParts = async ():Promise<PartsModel[]> => {
     return result.rows;
 };
 
-export const findPartsByName = async (name:string):Promise<PartsModel[] | null> => {
+export const findPartById = async (id:number):Promise<PartsModel[] | null> => {
     const result = await pool.query<PartsModel>(
-        `SELECT id_part AS "idPart", name_part AS "namePart", amount AS "amount", buy_value AS "buyValue", sale_value AS "saleValue" FROM parts WHERE name_part = $1`,
-        [name]
+        `SELECT id_part AS "idPart",
+        name_part AS "namePart",
+        amount AS "amount",
+        buy_value AS "buyValue",
+        sale_value AS "saleValue"
+        FROM parts WHERE id_part = $1`,
+        [id]
     );
     return result.rows ?? null;
 };

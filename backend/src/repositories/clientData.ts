@@ -13,7 +13,7 @@ export const findClients = async ():Promise<ClientModel[]> => {
     return result.rows;
 };
 
-export const findClientsByName = async (name:string):Promise<ClientModel | null> => {
+export const findClientById = async (id:number):Promise<ClientModel | null> => {
     const result = await pool.query<ClientModel>(
         `SELECT id AS "id",
         name AS "name",
@@ -21,8 +21,8 @@ export const findClientsByName = async (name:string):Promise<ClientModel | null>
         phone AS "phone",
         cpf AS "cpf",
         email AS "email"
-        FROM clients WHERE name = $1`,
-        [name]
+        FROM clients WHERE id = $1`,
+        [id]
     );
     return result.rows[0] ?? null;
 };

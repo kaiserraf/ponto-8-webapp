@@ -8,9 +8,9 @@ export const getPart = async (req:Request, res:Response) => {
     res.status(httpResponse.status).json(httpResponse.body);
 };
 
-export const getPartByName = async (req:Request, res:Response) => {
-    const name = req.params.name as string;
-    const httpResponse = await ps.getPartByNameService(name);
+export const getPartById = async (req:Request, res:Response) => {
+    const id = parseInt(req.params.id as string);
+    const httpResponse = await ps.getPartByIdService(id);
     res.status(httpResponse.status).json(httpResponse.body);
 };
 

@@ -18,14 +18,14 @@ router.post('/logout', userController.logout);
 
 // client route
 router.get('/clients', authToken, clientController.getClient); // lista de clientes
-router.get('/clients/:name', authToken, clientController.getClientByName); // filtra clientes pelo nome -> ainda não funciona
+router.get('/clients/:id', authToken, clientController.getClientById); // filtra clientes pelo nome -> ainda não funciona
 router.post('/clients/post', authToken, clientController.postClient); // cadastro de clientes
 router.patch('/clients/update/:id', authToken, clientController.updateClient); // atualizar clientes
 router.delete('/clients/:id', authToken, clientController.deleteClient);
 
 // parts route
 router.get('/parts', authToken, partController.getPart);
-router.get('/parts/:name', authToken, partController.getPartByName);
+router.get('/parts/:id', authToken, partController.getPartById);
 router.post('/parts/post', authToken, partController.postPart);
 router.patch('/parts/update/:id', authToken, partController.updatePart);
 router.delete('/parts/:id', authToken, partController.deletePart);

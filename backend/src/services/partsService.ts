@@ -19,9 +19,9 @@ export const listPartService = async () => {
     }
 };
 
-export const getPartByNameService = async (name:string) => {
+export const getPartByIdService = async (id:number) => {
     try{
-        const data = await pd.findPartsByName(name);
+        const data = await pd.findPartById(id);
         let response = null;
         if(data) response = await hr.ok(data);
         else response = await hr.noContent();

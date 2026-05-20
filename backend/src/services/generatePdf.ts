@@ -1,314 +1,472 @@
 import PDFDocument from 'pdfkit';
 import * as fs from 'fs';
-import  {findClientsByName} from '../repositories/clientData';
-import { findVehicleById} from '../repositories/vehicleData';
+import * as path from 'path';
+import { findClientById } from '../repositories/clientData';
+// NOTA: você vai precisar criar findClientById em clientData.ts
+// pois hoje só existe findClientsByName — veja comentário no final do arquivo
+
+import { findVehicleById } from '../repositories/vehicleData';
 import { findOSById, findOpByIdSo, findOlByIdSo } from '../repositories/osData';
-import { findPartsByName } from '../repositories/partsData';
+import { findPartById } from '../repositories/partsData';
+// NOTA: você vai precisar criar findPartById em partsData.ts
+// pois hoje só existe findPartsByName — veja comentário no final do arquivo
+
 import { selectLaborById } from '../repositories/laborData';
 import { OSModel } from '../Models/OSModel';
 import { ClientModel } from '../Models/clientModel';
 import { VehicleModel } from '../Models/vehicleModel';
 import { PartsOsModel } from '../Models/partsOsModel';
 import { PartsModel } from '../Models/partsModel';
-import { LaborModel } from '../Models/laborModel'
-import { LaborOsModel } from '../Models/laborOsModel'
+import { LaborModel } from '../Models/laborModel';
+import { LaborOsModel } from '../Models/laborOsModel';
 
-
-
-// Cores base da identidade da Ponto 8
-const COLORS = {
-   text: '#333333',
-   lightText: '#666666',
-   primary: '#fbb03b',
-   bgLight: '#f8f9fa',
-   border: '#e0e0e0'
+// ---------------------------------------------------------------------------
+// Cores da identidade visual Ponto 8
+// ---------------------------------------------------------------------------
+const CORES = {
+    texto:      '#333333',
+    textoClaro: '#666666',
+    primaria:   '#fbb03b',
+    fundoClaro: '#f8f9fa',
+    borda:      '#e0e0e0'
 };
 
-export const variables = async(name:string, vehicle:number, idOs:number, parts:string, idLabor:number) => {
-   const client = await findClientsByName(name);
-   if(!client) throw new Error("Impossivel gerar o PDF - não foi possivel acessar clientes");
+// ---------------------------------------------------------------------------
+// Ponto de entrada público — recebe apenas o idOs e busca tudo do banco
+// ---------------------------------------------------------------------------
 
-   const vehicledb = await findVehicleById(vehicle);
-   if(!vehicledb) throw new Error("Impossivel gerar o PDF - não foi possivel acessar veiculo");
-   
-   const os = await findOSById(idOs);
-   if(!os) throw new Error("Impossivel gerar o PDF - não foi possivel acessar OS");
-   
-   const orderParts = await findOpByIdSo(idOs);
-   if(!orderParts) throw new Error("Impossivel gerar o PDF - não foi possivel acessar peças da OS");
+export const gerarOsPdf = async (idOs: number): Promise<string> => {
+    // 1. Busca a OS — se não existir, lança erro imediatamente
+    const os = await findOSById(idOs);
+    if (!os) throw new Error(`OS ${idOs} não encontrada`);
 
-   const partsdb = await findPartsByName(parts);
-   if(!partsdb) throw new Error("Impossivel gerar o PDF - não foi possivel acessar peças");
+    // 2. Busca cliente e veículo em paralelo (Promise.all = mais rápido)
+    const [cliente, veiculo] = await Promise.all([
+        findClientById(os.idClient),
+        findVehicleById(os.idVehicle)
+    ]);
 
-   const orderLabor = await selectLaborById(idLabor);
-   if(!orderLabor) throw new Error("Impossivel gerar o PDF - não foi possivel acessar serviços");
+    if (!cliente) throw new Error(`Cliente ${os.idClient} não encontrado`);
+    if (!veiculo) throw new Error(`Veículo ${os.idVehicle} não encontrado`);
 
-   const labor = await findOlByIdSo(idOs);
-   if(!labor) throw new Error("Impossivel gerar o PDF - não foi possivel acessar serviços");
+    // 3. Busca as peças e serviços vinculados à OS
+    const pecasDaOs   = await findOpByIdSo(idOs);   // order_parts — tem idPart, amount, unitPrice
+    const servicosDaOs = await findOlByIdSo(idOs);  // order_labor — tem idLabor, value
 
-   generatePdf(os, client, vehicledb, orderParts, partsdb, orderLabor, labor);
-}
+    // 4. Para cada peça da OS, busca os detalhes da peça (nome, etc.)
+    //    Promise.all com map = busca todas em paralelo
+    const detalhesPecas: PartsModel[] = await Promise.all(
+        pecasDaOs.map(async (op: PartsOsModel) => {
+            const peca = await findPartById(op.idPart);
+            if (!peca) throw new Error(`Peça ${op.idPart} não encontrada`);
+            return peca[0];
+        })
+    );
 
+    // 5. Para cada serviço da OS, busca os detalhes do serviço (nome, etc.)
+    const detalhesServicos: LaborModel[] = await Promise.all(
+        servicosDaOs.map(async (ol: LaborOsModel) => {
+            const servico = await selectLaborById(ol.idLabor);
+            // selectLaborById retorna array — pegamos o primeiro
+            if (!servico || servico.length === 0) throw new Error(`Serviço ${ol.idLabor} não encontrado`);
+            return servico[0]; // futuramente alterar isso no banco de dados pois la que esta errado
+        })
+    );
+
+    // 6. Gera o PDF e retorna o caminho do arquivo
+    const caminho = await gerarPdf(os, cliente, veiculo, pecasDaOs, detalhesPecas, servicosDaOs, detalhesServicos);
+    return caminho;
+};
+
+// ---------------------------------------------------------------------------
+// Função principal de geração — monta o documento PDFKit
+// ---------------------------------------------------------------------------
+
+const gerarPdf = (
+    os:              OSModel,
+    cliente:         ClientModel,
+    veiculo:         VehicleModel,
+    pecasDaOs:       PartsOsModel[],
+    detalhesPecas:   PartsModel[],
+    servicosDaOs:    LaborOsModel[],
+    detalhesServicos: LaborModel[]
+): Promise<string> => {
+
+    return new Promise((resolve, reject) => {
+        const doc = new PDFDocument({ size: 'A4', margin: 40 });
+
+        // Monta o nome do arquivo e o caminho absoluto para a pasta /backend/pdfs
+        const nomeCliente = cliente.name.replace(/ /g, '_');
+        const nomeArquivo = `OS_${os.id}_${nomeCliente}.pdf`;
+
+        // __dirname aqui aponta para backend/src/services
+        // Subimos dois níveis para chegar em backend/, depois entramos em pdfs/
+        const pastaPdfs = path.join(__dirname, '../../pdfs');
+
+        // Garante que a pasta existe — se não existir, cria
+        if (!fs.existsSync(pastaPdfs)) {
+            fs.mkdirSync(pastaPdfs, { recursive: true });
+        }
+
+        const caminhoArquivo = path.join(pastaPdfs, nomeArquivo);
+        const writeStream    = fs.createWriteStream(caminhoArquivo);
+
+        // Conecta o documento ao arquivo
+        doc.pipe(writeStream);
+
+        // Controla a posição Y atual na página
+        let y = 40;
+
+        // Monta cada seção do documento
+        y = gerarCabecalho(doc, y, os.id, os.createdAt);
+        y = gerarDadosClienteVeiculo(doc, y, cliente, veiculo);
+
+        const { novoY: yAposPecas,    totalPecas    } = gerarTabelaPecas(doc, y, pecasDaOs, detalhesPecas);
+        y = yAposPecas + 20;
+
+        const { novoY: yAposServicos, totalServicos } = gerarTabelaServicos(doc, y, servicosDaOs, detalhesServicos);
+        y = yAposServicos + 20;
+
+        y = gerarTotais(doc, y, totalPecas, totalServicos);
+        y += 25;
+
+        y = gerarLaudoETermos(doc, y, os.description);
+        y += 50;
+
+        gerarAssinaturas(doc, y, cliente.name);
+        gerarRodape(doc);
+
+        // Finaliza a escrita
+        doc.end();
+
+        // Resolve a Promise quando o arquivo terminar de ser escrito no disco
+        writeStream.on('finish', () => {
+            console.log(`PDF gerado: ${caminhoArquivo}`);
+            resolve(caminhoArquivo);
+        });
+
+        // Rejeita a Promise se houver erro de escrita
+        writeStream.on('error', (err) => {
+            reject(err);
+        });
+    });
+};
+
+// ---------------------------------------------------------------------------
+// Helpers utilitários
+// ---------------------------------------------------------------------------
+
+// Verifica se o conteúdo vai ultrapassar o limite da página
+// Se sim, adiciona nova página e reinicia o Y
 function checarNovaPagina(doc: PDFKit.PDFDocument, y: number, alturaLinha: number = 35): number {
-   const limiteInferior = 760;
-   if (y + alturaLinha > limiteInferior) {
-      doc.addPage();
-      return 40; // reinicia o Y no topo da nova página
-   }
-   return y;
+    const LIMITE_INFERIOR = 760;
+    if (y + alturaLinha > LIMITE_INFERIOR) {
+        doc.addPage();
+        return 40;
+    }
+    return y;
 }
 
 function formatarData(date: Date): string {
-   return new Date(date).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-   });
+    return new Date(date).toLocaleDateString('pt-BR', {
+        day:    '2-digit',
+        month:  '2-digit',
+        year:   'numeric',
+        hour:   '2-digit',
+        minute: '2-digit'
+    });
 }
 
-function formatarMoeda(value: number): string {
-   return value.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-   });
+function formatarMoeda(valor: number): string {
+    return valor.toLocaleString('pt-BR', {
+        style:    'currency',
+        currency: 'BRL'
+    });
 }
 
-export const  generatePdf = (
-   os:OSModel,
-   client:ClientModel,
-   vehicle:VehicleModel,
-   orderParts:PartsOsModel[], parts:PartsModel[],
-   orderLabor:LaborModel[], labor:LaborOsModel[]
-) => {
-   const doc = new PDFDocument({ size: 'A4', margin: 40 });
-   const clientName = client.name.replace(/ /g, "_");
-   const writeStream = fs.createWriteStream(`OS_${os.id}_${clientName}.pdf`);
-   doc.pipe(writeStream);
+// ---------------------------------------------------------------------------
+// Seções do documento
+// ---------------------------------------------------------------------------
 
-   // Variável mestre que controla a altura (posição Y) dos elementos na página
-   let yAtual = 40;
+function gerarCabecalho(doc: PDFKit.PDFDocument, y: number, osId: number, abertura: Date): number {
+    const caminhoLogo = path.join(__dirname, '../../../frontend/img/img1.png');
 
-   yAtual = gerarCabecalho(doc, yAtual, os.id, os.createdAt);
-   yAtual = gerarDadosClienteVeiculo(doc, yAtual, client, vehicle);
+    // Tenta carregar o logo — se não existir, apenas pula a imagem
+    // (evita crash se o arquivo não estiver no lugar certo)
+    if (fs.existsSync(caminhoLogo)) {
+        doc.image(caminhoLogo, 40, y, { height: 40 });
+    }
 
-   const {newY: yAfterProducts, totalProducts} = gerarTabelaProdutos(doc, yAtual, orderParts, parts);
-   let products = totalProducts;
-   yAtual = yAfterProducts + 20;
+    // Nome da empresa — posicionado à direita do espaço reservado para o logo
+    doc
+        .fontSize(14)
+        .font('Helvetica-Bold')
+        .fillColor(CORES.texto)
+        .text('PONTO 8 OFICINA MECÂNICA', 150, y);
 
-   const {newY: yAfterServices, totalServices} = gerarTabelaServicos(doc, yAtual, orderLabor, labor);
-   let services = totalServices;
-   yAtual = yAfterServices + 20;
+    doc
+        .fontSize(8)
+        .font('Helvetica')
+        .fillColor(CORES.textoClaro)
+        .text(`${process.env.COMPANY_LEGAL_NAME} - CNPJ: ${process.env.COMPANY_CNPJ}`, 150, y + 18)
+        .text(`${process.env.COMPANY_ADDRESS}`,                                          150, y + 30)
+        .text(`${process.env.COMPANY_CITY}`,                                             150, y + 42)
+        .text(`Tel: ${process.env.COMPANY_PHONE} | E-mail: ${process.env.COMPANY_EMAIL}`, 150, y + 54);
 
-   yAtual = gerarTotais(doc, yAtual, products, services);
-   yAtual += 25;
+    // Caixa da OS no canto direito
+    doc.roundedRect(400, y, 155, 60, 5).fillAndStroke(CORES.fundoClaro, CORES.borda);
+    doc
+        .fontSize(8).font('Helvetica-Bold').fillColor(CORES.textoClaro)
+        .text('ORDEM DE SERVIÇO', 400, y + 8, { width: 155, align: 'center' });
+    doc
+        .fontSize(18).font('Helvetica-Bold').fillColor(CORES.texto)
+        .text(`Nº ${osId}`, 400, y + 20, { width: 155, align: 'center', characterSpacing: 1 });
 
-   yAtual = gerarLaudoETermos(doc, yAtual, os.description);
+    doc
+        .fontSize(8).font('Helvetica').fillColor(CORES.textoClaro)
+        .text(`Abertura: ${formatarData(abertura)}`, 400, y + 70, { width: 155, align: 'right' });
 
-   // Espaço antes das assinaturas
-   yAtual += 50;
-   gerarAssinaturas(doc, yAtual, client.name);
-   gerarRodape(doc);
+    // Linha divisória amarela
+    doc.moveTo(40, y + 105).lineTo(555, y + 105).lineWidth(2).stroke(CORES.primaria);
 
-   // Finaliza a geração do arquivo
-   doc.end();
-
-   writeStream.on('finish', () => {
-      console.log(`PDF gerado com sucesso: OS_${os.id}_${clientName}.pdf`);
-   });
+    return y + 125;
 }
 
-function gerarCabecalho(doc:PDFKit.PDFDocument, y:number, osId:number, open:Date): number {
-   doc.image('ponto-8-webapp/frontend/img/img1.png', 40, y, { height: 40 });
-   doc.fontSize(14).font('Helvetica-Bold').fillColor(COLORS.text).text('PONTO 8 OFICINA MECÂNICA', 40, y);
+function gerarDadosClienteVeiculo(doc: PDFKit.PDFDocument, y: number, cl: ClientModel, ve: VehicleModel): number {
+    const colEsq = 40;
+    const colDir = 300;
 
-   doc.fontSize(8).font('Helvetica').fillColor(COLORS.lightText)
-      .text(`${process.env.COMPANY_LEGAL_NAME} - CNPJ:${process.env.COMPANY_CNPJ}`, 40, y + 18)
-      .text(process.env.COMPANY_ADDRESS!, 40, y + 30)
-      .text(process.env.COMPANY_CITY!, 40, y + 42)
-      .text(`Telefone: ${process.env.COMPANY_PHONE} | E-mail: ${process.env.COMPANY_EMAIL}`, 40, y + 54);
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(CORES.texto);
+    doc.text('Dados do Cliente', colEsq, y);
+    doc.text('Dados do Veículo', colDir, y);
 
-   doc.roundedRect(400, y, 155, 60, 5).fillAndStroke(COLORS.bgLight, COLORS.border);
-   doc.fontSize(8).font('Helvetica-Bold').fillColor(COLORS.lightText)
-      .text('ORDEM DE SERVIÇO', 400, y + 8, { width: 155, align: 'center' });
-   doc.fontSize(18).font('Helvetica-Bold').fillColor(COLORS.text)
-      .text(`Nº ${osId}`, 400, y + 20, { width: 155, align: 'center', characterSpacing: 1 });
+    doc.moveTo(colEsq, y + 15).lineTo(280, y + 15).lineWidth(1).stroke('#eeeeee');
+    doc.moveTo(colDir, y + 15).lineTo(555, y + 15).lineWidth(1).stroke('#eeeeee');
 
-   doc.fontSize(8).font('Helvetica').fillColor(COLORS.lightText)
-      .text(`Abertura: ${formatarData(open)}`, 400, y + 70, { width: 155, align: 'right' });
+    const yLinhas = y + 25;
+    const espaco  = 14;
 
-   doc.moveTo(40, y + 105).lineTo(555, y + 105).lineWidth(2).stroke(COLORS.primary);
+    // Dados do cliente
+    doc.fontSize(9.5).font('Helvetica-Bold').fillColor(CORES.texto)
+        .text('Nome:',     colEsq,      yLinhas)
+        .font('Helvetica').text(`${cl.name}`,    colEsq + 50, yLinhas);
 
-   return y + 125;
+    doc.font('Helvetica-Bold').text('CPF/CNPJ:',  colEsq,      yLinhas + espaco)
+        .font('Helvetica').text(`${cl.cpf}`,      colEsq + 65, yLinhas + espaco);
+
+    doc.font('Helvetica-Bold').text('Endereço:',  colEsq,      yLinhas + espaco * 2)
+        .font('Helvetica').text(`${cl.address}`,  colEsq + 55, yLinhas + espaco * 2);
+
+    doc.font('Helvetica-Bold').text('Telefone:',  colEsq,      yLinhas + espaco * 3)
+        .font('Helvetica').text(`${cl.phone}`,    colEsq + 55, yLinhas + espaco * 3);
+
+    // Dados do veículo
+    doc.font('Helvetica-Bold').text('Veículo:',   colDir,      yLinhas)
+        .font('Helvetica').text(`${ve.vehicleBrand} ${ve.vehicleModel}`, colDir + 45, yLinhas);
+
+    doc.font('Helvetica-Bold').text('Placa:',     colDir,      yLinhas + espaco)
+        .font('Helvetica').text(`${ve.plate}`,    colDir + 35, yLinhas + espaco);
+
+    doc.font('Helvetica-Bold').text('Chassi:',    colDir,      yLinhas + espaco * 2)
+        .font('Helvetica').text(`${ve.chassi}`,   colDir + 45, yLinhas + espaco * 2);
+
+    doc.font('Helvetica-Bold').text('Ano:',       colDir,      yLinhas + espaco * 3)
+        .font('Helvetica').text(`${ve.year}`,     colDir + 30, yLinhas + espaco * 3);
+
+    return yLinhas + (espaco * 4) + 30;
 }
 
-function gerarDadosClienteVeiculo(doc:PDFKit.PDFDocument, yBase:number, cl:ClientModel, ve:VehicleModel): number {
-   const colEsquerda = 40;
-   const colDireita = 300;
-
-   doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.text);
-   doc.text('Dados do Cliente', colEsquerda, yBase);
-   doc.text('Dados do Veículo', colDireita, yBase);
-
-   doc.moveTo(colEsquerda, yBase + 15).lineTo(280, yBase + 15).lineWidth(1).stroke('#eeeeee');
-   doc.moveTo(colDireita, yBase + 15).lineTo(555, yBase + 15).lineWidth(1).stroke('#eeeeee');
-
-   const yLinhas = yBase + 25;
-   const espaco = 14;
-
-   doc.fontSize(9.5).font('Helvetica-Bold').fillColor(COLORS.text).text('Nome:', colEsquerda, yLinhas)
-      .font('Helvetica').text(`${cl.name}`, colEsquerda + 50, yLinhas);
-   doc.font('Helvetica-Bold').text('CPF/CNPJ:', colEsquerda, yLinhas + espaco)
-      .font('Helvetica').text(`${cl.cpf}`, colEsquerda + 65, yLinhas + espaco);
-   doc.font('Helvetica-Bold').text('Endereço:', colEsquerda, yLinhas + espaco * 2)
-      .font('Helvetica').text(`${cl.address}`, colEsquerda + 55, yLinhas + espaco * 2);
-   doc.font('Helvetica-Bold').text('Telefone:', colEsquerda, yLinhas + espaco * 4)
-      .font('Helvetica').text(`${cl.phone}`, colEsquerda + 55, yLinhas + espaco * 4);
-
-   doc.font('Helvetica-Bold').text('Veículo:', colDireita, yLinhas)
-      .font('Helvetica').text(`${ve.vehicleBrand} ${ve.vehicleModel}`, colDireita + 45, yLinhas);
-   doc.font('Helvetica-Bold').text('Placa:', colDireita, yLinhas + espaco)
-      .font('Helvetica').text(`${ve.plate}`, colDireita + 35, yLinhas + espaco);
-   doc.font('Helvetica-Bold').text('Chassi:', colDireita, yLinhas + espaco * 2)
-      .font('Helvetica').text(`${ve.chassi}`, colDireita + 45, yLinhas + espaco * 2);
-   doc.font('Helvetica-Bold').text('Ano:', colDireita, yLinhas + espaco * 3)
-      .font('Helvetica').text(`${ve.year}`, colDireita + 50, yLinhas + espaco * 3);
-
-   return yLinhas + (espaco * 4) + 30; // Retorna o novo Y
-}
-
+// Cabeçalho reutilizável para as duas tabelas (peças e serviços)
 function desenharCabecalhoTabela(doc: PDFKit.PDFDocument, y: number, titulo: string) {
-   doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.text).text(titulo, 40, y);
-   doc.rect(40, y + 15, 515, 18).fill(COLORS.bgLight);
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(CORES.texto).text(titulo, 40, y);
+    doc.rect(40, y + 15, 515, 18).fill(CORES.fundoClaro);
 
-   doc.fontSize(9).font('Helvetica-Bold').fillColor(COLORS.text);
-   doc.text('Item', 45, y + 20);
-   doc.text('Descrição', 80, y + 20);
-   doc.text('Qtd', 350, y + 20, { width: 30, align: 'center' });
-   doc.text('V. Unitário', 400, y + 20, { width: 70, align: 'right' });
-   doc.text('V. Total', 480, y + 20, { width: 70, align: 'right' });
+    doc.fontSize(9).font('Helvetica-Bold').fillColor(CORES.texto);
+    doc.text('Item',        45,  y + 20);
+    doc.text('Descrição',   80,  y + 20);
+    doc.text('Qtd',         350, y + 20, { width: 30,  align: 'center' });
+    doc.text('V. Unitário', 400, y + 20, { width: 70,  align: 'right'  });
+    doc.text('V. Total',    480, y + 20, { width: 70,  align: 'right'  });
 
-   doc.moveTo(40, y + 33).lineTo(555, y + 33).lineWidth(1).stroke(COLORS.border);
+    doc.moveTo(40, y + 33).lineTo(555, y + 33).lineWidth(1).stroke(CORES.borda);
 }
 
-function gerarTabelaProdutos(doc:PDFKit.PDFDocument, yBase:number, po:PartsOsModel[], pa:PartsModel[]):{newY: number, totalProducts: number} {
-   desenharCabecalhoTabela(doc, yBase, 'Produtos Utilizados');
-   let y = yBase + 40;
-   let totalProducts = 0;
+function gerarTabelaPecas(
+    doc:           PDFKit.PDFDocument,
+    yBase:         number,
+    pecasDaOs:     PartsOsModel[],
+    detalhesPecas: PartsModel[]
+): { novoY: number; totalPecas: number } {
 
-   let i  = 0;
-   for(i = 0; i < po.length; i++){
-      y = checarNovaPagina(doc, y);
-      const result = pa.find(p => p.idPart === po[i].idPart);
+    desenharCabecalhoTabela(doc, yBase, 'Produtos Utilizados');
+    let y          = yBase + 40;
+    let totalPecas = 0;
 
-      doc.fontSize(9).font('Helvetica').fillColor(COLORS.text).text(`${i+1}`, 45, y);
-      doc.font('Helvetica-Bold').text(`${result?.namePart}`, 80, y);
-      doc.font('Helvetica').fillColor(COLORS.lightText).fontSize(7.5);
-      doc.fontSize(9).fillColor(COLORS.text);
-      doc.text(`${po[i].amount}`, 350, y, { width: 30, align: 'center' });
-      doc.text(`${formatarMoeda(po[i].unitPrice)}`, 400, y, { width: 70, align: 'right' });
-      let total = po[i].unitPrice * po[i].amount;
-      doc.text(`${formatarMoeda(total)}`, 480, y, { width: 70, align: 'right' });
-      doc.moveTo(40, y + 25).lineTo(555, y + 25).lineWidth(1).stroke(COLORS.border);
+    for (let i = 0; i < pecasDaOs.length; i++) {
+        y = checarNovaPagina(doc, y);
 
-      totalProducts += total
+        const ordemPeca = pecasDaOs[i];
 
-      y += 35;
-   }
+        // Usa .find() para buscar pelo ID — não assume que os arrays têm a mesma ordem
+        const detalhe = detalhesPecas.find(p => p.idPart === ordemPeca.idPart);
+        const total   = ordemPeca.unitPrice * ordemPeca.amount;
 
-   return {newY: y + 25, totalProducts};
+        doc.fontSize(9).font('Helvetica').fillColor(CORES.texto)
+            .text(`${i + 1}`,                          45,  y);
+        doc.font('Helvetica-Bold')
+            .text(`${detalhe?.namePart ?? '—'}`,       80,  y);
+        doc.fontSize(9).fillColor(CORES.texto)
+            .text(`${ordemPeca.amount}`,               350, y, { width: 30, align: 'center' })
+            .text(formatarMoeda(ordemPeca.unitPrice),  400, y, { width: 70, align: 'right'  })
+            .text(formatarMoeda(total),                480, y, { width: 70, align: 'right'  });
+
+        doc.moveTo(40, y + 25).lineTo(555, y + 25).lineWidth(1).stroke(CORES.borda);
+
+        totalPecas += total;
+        y          += 35;
+    }
+
+    return { novoY: y + 25, totalPecas };
 }
 
-function gerarTabelaServicos(doc: PDFKit.PDFDocument, yBase: number, lo:LaborModel[], la:LaborOsModel[]): {newY: number, totalServices: number} {
-   desenharCabecalhoTabela(doc, yBase, 'Serviços Utilizados');
-   let y = yBase + 40;
-   let totalServices = 0;
+function gerarTabelaServicos(
+    doc:              PDFKit.PDFDocument,
+    yBase:            number,
+    servicosDaOs:     LaborOsModel[],
+    detalhesServicos: LaborModel[]
+): { novoY: number; totalServicos: number } {
 
-   for (let i = 0; i < la.length; i++) {
-      y = checarNovaPagina(doc, y);
-      const laborOs = la[i];
-      const laborInfo = lo.find(l => l.id === laborOs.idLabor);
+    desenharCabecalhoTabela(doc, yBase, 'Serviços Realizados');
+    let y             = yBase + 40;
+    let totalServicos = 0;
 
-      doc.fontSize(9).font('Helvetica').fillColor(COLORS.text).text(`${i+1}`, 45, y);
-      doc.font('Helvetica-Bold').text(`${laborInfo?.laborName ?? laborInfo?.laborName ?? ''}`, 80, y);
-      doc.font('Helvetica').fillColor(COLORS.lightText).fontSize(7.5);
-      doc.fontSize(9).fillColor(COLORS.text);
-      // Serviços normalmente não têm quantidade, considerar 1
-      doc.text(`1`, 350, y, { width: 30, align: 'center' });
-      doc.text(`${formatarMoeda(laborOs.value)}`, 400, y, { width: 70, align: 'right' });
-      let total = laborOs.value;
-      doc.text(`${formatarMoeda(total)}`, 480, y, { width: 70, align: 'right' });
-      doc.moveTo(40, y + 25).lineTo(555, y + 25).lineWidth(1).stroke(COLORS.border);
+    for (let i = 0; i < servicosDaOs.length; i++) {
+        y = checarNovaPagina(doc, y);
 
-      totalServices += total;
-      y += 35;
-   }
+        const ordemServico = servicosDaOs[i];
 
-   return {newY: y + 25, totalServices};
+        // Mesmo padrão — .find() pelo ID, não por índice
+        const detalhe = detalhesServicos.find(l => l.idLabor === ordemServico.idLabor);
+
+        doc.fontSize(9).font('Helvetica').fillColor(CORES.texto)
+            .text(`${i + 1}`,                           45, y);
+        doc.font('Helvetica-Bold')
+            .text(`${detalhe?.laborName ?? '—'}`,       80, y);
+        doc.fontSize(9).fillColor(CORES.texto)
+            .text('1',                                  350, y, { width: 30, align: 'center' })
+            .text(formatarMoeda(ordemServico.value),    400, y, { width: 70, align: 'right'  })
+            .text(formatarMoeda(ordemServico.value),    480, y, { width: 70, align: 'right'  });
+
+        doc.moveTo(40, y + 25).lineTo(555, y + 25).lineWidth(1).stroke(CORES.borda);
+
+        totalServicos += ordemServico.value;
+        y             += 35;
+    }
+
+    return { novoY: y + 25, totalServicos };
 }
 
-function gerarTotais(doc: PDFKit.PDFDocument, yBase: number, products:number, services:number): number {
-   const startX = 350;
+function gerarTotais(doc: PDFKit.PDFDocument, y: number, totalPecas: number, totalServicos: number): number {
+    const startX = 350;
 
-   doc.roundedRect(startX, yBase, 205, 65, 4).stroke(COLORS.border);
+    doc.roundedRect(startX, y, 205, 65, 4).stroke(CORES.borda);
 
-   doc.fontSize(10).font('Helvetica').fillColor(COLORS.text);
-   doc.text('Total de Produtos:', startX + 10, yBase + 10);
-   doc.text(`${products}`, startX, yBase + 10, { width: 195, align: 'right' });
+    doc.fontSize(10).font('Helvetica').fillColor(CORES.texto);
+    doc.text('Total de Produtos:', startX + 10, y + 10);
+    doc.text(formatarMoeda(totalPecas),     startX, y + 10, { width: 195, align: 'right' });
 
-   doc.text('Total de Serviços:', startX + 10, yBase + 28);
-   doc.text(`${services}`, startX, yBase + 28, { width: 195, align: 'right' });
+    doc.text('Total de Serviços:', startX + 10, y + 28);
+    doc.text(formatarMoeda(totalServicos),  startX, y + 28, { width: 195, align: 'right' });
 
-   // Fundo Amarelo para o Líquido
-   doc.rect(startX, yBase + 45, 205, 20).fill(COLORS.primary);
-   doc.fontSize(11).font('Helvetica-Bold').fillColor('black');
-   doc.text('VALOR LÍQUIDO:', startX + 10, yBase + 50);
-   const totalAll = products + services;
-   doc.text(`${formatarMoeda(totalAll)}`, startX, yBase + 50, { width: 195, align: 'right' });
+    // Faixa amarela do total líquido
+    doc.rect(startX, y + 45, 205, 20).fill(CORES.primaria);
+    doc.fontSize(11).font('Helvetica-Bold').fillColor('black');
+    doc.text('VALOR LÍQUIDO:', startX + 10, y + 50);
+    doc.text(formatarMoeda(totalPecas + totalServicos), startX, y + 50, { width: 195, align: 'right' });
 
-   return yBase + 65;
+    return y + 65;
 }
 
-function gerarLaudoETermos(doc: PDFKit.PDFDocument, yBase: number, textoLaudo: string): number {
-   doc.fontSize(11).font('Helvetica-Bold').fillColor(COLORS.text).text('Laudo Conclusivo', 40, yBase);
+function gerarLaudoETermos(doc: PDFKit.PDFDocument, y: number, descricao: string): number {
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(CORES.texto).text('Laudo Conclusivo', 40, y);
 
-   // Lógica Dinâmica de Altura baseada na string
-   doc.fontSize(9.5).font('Helvetica');
-   const larguraTexto = 485;
-   const alturaTexto = doc.heightOfString(textoLaudo, { width: larguraTexto });
-   const alturaBox = alturaTexto + 30; // Altura do texto + padding
+    const largura     = 485;
+    const alturaTexto = doc.heightOfString(descricao, { width: largura });
+    const alturaBox   = alturaTexto + 30;
 
-   doc.rect(40, yBase + 15, 515, alturaBox).fill(COLORS.bgLight);
-   doc.rect(40, yBase + 15, 4, alturaBox).fill(COLORS.primary);
+    doc.rect(40, y + 15, 515, alturaBox).fill(CORES.fundoClaro);
+    doc.rect(40, y + 15, 4,   alturaBox).fill(CORES.primaria);
 
-   doc.font('Helvetica-Bold').fillColor(COLORS.text).text('SUBSTITUÍDO / OBSERVAÇÕES:', 55, yBase + 22);
-   doc.font('Helvetica').text(textoLaudo, 55, yBase + 34, { width: larguraTexto });
+    doc.font('Helvetica-Bold').fillColor(CORES.texto)
+        .text('SUBSTITUÍDO / OBSERVAÇÕES:', 55, y + 22);
+    doc.font('Helvetica')
+        .text(descricao, 55, y + 34, { width: largura });
 
-   // Termos calculados logo abaixo da box do laudo
-   const novoYTermos = yBase + 15 + alturaBox + 15;
+    const yTermos = y + 15 + alturaBox + 15;
 
-   doc.rect(40, novoYTermos, 515, 30).lineWidth(1).dash(2, { space: 2 }).stroke('#cccccc');
-   doc.undash();
-   doc.fontSize(8.5).fillColor(COLORS.lightText)
-      .text('Estou ciente da conclusão dos serviços acima relacionados, bem como a aplicação das peças listadas nesta ordem de serviço. Comprometo-me em pagar conforme a descrição dos valores e prazos acordados.', 45, novoYTermos + 8, { width: 505, align: 'justify' });
+    doc.rect(40, yTermos, 515, 30).lineWidth(1).dash(2, { space: 2 }).stroke('#cccccc');
+    doc.undash();
+    doc.fontSize(8.5).fillColor(CORES.textoClaro)
+        .text(
+            'Estou ciente da conclusão dos serviços acima relacionados, bem como a aplicação das peças listadas nesta ordem de serviço. ' +
+            'Comprometo-me em pagar conforme a descrição dos valores e prazos acordados.',
+            45, yTermos + 8,
+            { width: 505, align: 'justify' }
+        );
 
-   return novoYTermos + 30;
+    return yTermos + 30;
 }
 
-function gerarAssinaturas(doc: PDFKit.PDFDocument, yBase: number, name:string) {
-   doc.moveTo(80, yBase).lineTo(240, yBase).lineWidth(1).stroke(COLORS.text);
-   doc.fontSize(9).font('Helvetica-Bold').fillColor(COLORS.text).text('Ponto 8 Oficina Mecânica', 80, yBase + 5, { width: 160, align: 'center' });
-   doc.fontSize(8).font('Helvetica').fillColor(COLORS.lightText).text('Responsável Técnico', 80, yBase + 17, { width: 160, align: 'center' });
+function gerarAssinaturas(doc: PDFKit.PDFDocument, y: number, nomeCliente: string) {
+    doc.moveTo(80,  y).lineTo(240, y).lineWidth(1).stroke(CORES.texto);
+    doc.fontSize(9).font('Helvetica-Bold').fillColor(CORES.texto)
+        .text('Ponto 8 Oficina Mecânica', 80, y + 5,  { width: 160, align: 'center' });
+    doc.fontSize(8).font('Helvetica').fillColor(CORES.textoClaro)
+        .text('Responsável Técnico',      80, y + 17, { width: 160, align: 'center' });
 
-   doc.moveTo(350, yBase).lineTo(510, yBase).lineWidth(1).stroke(COLORS.text);
-   doc.fontSize(9).font('Helvetica-Bold').fillColor(COLORS.text).text(name, 350, yBase + 5, { width: 160, align: 'center' });
-   doc.fontSize(8).font('Helvetica').fillColor(COLORS.lightText).text('Assinatura do Cliente / Data', 350, yBase + 17, { width: 160, align: 'center' });
+    doc.moveTo(350, y).lineTo(510, y).lineWidth(1).stroke(CORES.texto);
+    doc.fontSize(9).font('Helvetica-Bold').fillColor(CORES.texto)
+        .text(nomeCliente,                350, y + 5,  { width: 160, align: 'center' });
+    doc.fontSize(8).font('Helvetica').fillColor(CORES.textoClaro)
+        .text('Assinatura do Cliente / Data', 350, y + 17, { width: 160, align: 'center' });
 }
 
 function gerarRodape(doc: PDFKit.PDFDocument) {
-   // Fixado no final da página A4
-   doc.moveTo(40, 800).lineTo(555, 800).lineWidth(1).stroke('#eeeeee');
-   doc.fontSize(8).font('Helvetica').fillColor('#999999')
-      .text('Gerado pelo sistema Ponto 8 - Gestão Automotiva Inteligente | app.ponto8.com.br', 40, 810, { width: 515, align: 'center' });
+    doc.moveTo(40, 800).lineTo(555, 800).lineWidth(1).stroke('#eeeeee');
+    doc.fontSize(8).font('Helvetica').fillColor('#999999')
+        .text(
+            'Gerado pelo sistema Ponto 8 - Gestão Automotiva Inteligente | app.ponto8.com.br',
+            40, 810,
+            { width: 515, align: 'center' }
+        );
 }
+
+// ---------------------------------------------------------------------------
+// NOTAS — funções que precisam ser adicionadas nos repositories
+// ---------------------------------------------------------------------------
+//
+// Em clientData.ts, adicione:
+//
+//   export const findClientById = async (id: number): Promise<ClientModel | null> => {
+//       const result = await pool.query<ClientModel>(
+//           `SELECT id, name, address, phone, cpf, email FROM clients WHERE id = $1`,
+//           [id]
+//       );
+//       return result.rows[0] ?? null;
+//   };
+//
+// ---------------------------------------------------------------------------
+//
+// Em partsData.ts, adicione:
+//
+//   export const findPartById = async (id: number): Promise<PartsModel | null> => {
+//       const result = await pool.query<PartsModel>(
+//           `SELECT id_part AS "idPart", name_part AS "namePart", amount,
+//                   buy_value AS "buyValue", sale_value AS "saleValue"
+//            FROM parts WHERE id_part = $1`,
+//           [id]
+//       );
+//       return result.rows[0] ?? null;
+//   };
+//
+// ---------------------------------------------------------------------------

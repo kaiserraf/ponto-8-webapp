@@ -1,4 +1,4 @@
 export interface LaborModel{
-    id: number,
+    idLabor: number,
     laborName: string
 }
