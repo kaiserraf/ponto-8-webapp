@@ -48,27 +48,18 @@
       </a>
       <a href="listParts.html" class="nav-link">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path
-            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
         </svg>
         Peças
       </a>
-      <span class="sidebar__section">Oficina</span>
       <a href="listOS.html" class="nav-link">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-          <rect x="9" y="3" width="6" height="4" rx="2"/>
-          <line x1="9" y1="12" x2="15" y2="12"/>
-          <line x1="9" y1="16" x2="12" y2="16"/>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
         </svg>
         Ordens de Serviço
-      </a>
-      <a href="listLabor.html" class="nav-link">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
-        </svg>
-        Serviços
       </a>
       <span class="sidebar__section">Sistema</span>
       <a href="#" class="nav-link" id="btn-logout">
@@ -107,19 +98,9 @@
           <div class="stat-card__sub">no estoque</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card__label">Estoque total</div>
-          <div class="stat-card__value" id="count-stock">—</div>
-          <div class="stat-card__sub">unidades</div>
-        </div>
-        <div class="stat-card">
           <div class="stat-card__label">Ordens de Serviço</div>
           <div class="stat-card__value" id="count-os">—</div>
           <div class="stat-card__sub">abertas</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card__label">Serviços</div>
-          <div class="stat-card__value" id="count-labors">—</div>
-          <div class="stat-card__sub">no catálogo</div>
         </div>
       </div>
 
@@ -129,93 +110,39 @@
       </div>
 
       <div style="display:flex;gap:12px;flex-wrap:wrap; margin-bottom: 32px;">
-        <a href="listOS.html" class="btn btn-primary">Nova OS</a>
+        <a href="listOS.html"     class="btn btn-primary">Nova OS</a>
         <a href="listClient.html" class="btn btn-ghost">Clientes</a>
         <a href="listVehicle.html" class="btn btn-ghost">Veículos</a>
-        <a href="listParts.html" class="btn btn-ghost">Peças</a>
-        <a href="listLabor.html" class="btn btn-ghost">Serviços</a>
-      </div>
-
-      <!-- Recent OS table -->
-      <div class="page-header" style="margin-bottom:16px;">
-        <h2 style="font-family:var(--font-display);font-size:24px;letter-spacing:1px;color:var(--white-dim)">ÚLTIMAS OS</h2>
-        <a href="listOS.html" class="btn btn-ghost btn-sm">Ver todas</a>
-      </div>
-      <div class="table-wrap">
-        <div id="recent-os-wrap"><div class="spinner"></div></div>
+        <a href="listParts.html"  class="btn btn-ghost">Peças</a>
       </div>
     </main>
   </div>
 
   <script type="module">
     import { logout } from '../js/authGuard.js';
-    import { getClients, getVehicles, getParts, getOs, getLabors } from '../js/api.js';
+    import { getClients, getVehicles, getParts } from '../js/api.js';
+    import { getOs } from '../js/osApi.js';
 
     document.getElementById('btn-logout').onclick = (e) => {
       e.preventDefault();
       logout();
     };
 
-    const brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    const fmtDate = (d) => d ? new Date(d).toLocaleDateString('pt-BR') : '—';
-
     async function loadDashboard() {
-      const [cRes, vRes, pRes, osRes, lRes] = await Promise.all([
-        getClients(), getVehicles(), getParts(), getOs(), getLabors()
+      const [cRes, vRes, pRes, osRes] = await Promise.all([
+        getClients(), getVehicles(), getParts(), getOs()
       ]);
 
-      const clients = cRes.data  || [];
-      const vehicles = vRes.data || [];
-      const parts    = pRes.data || [];
-      const orders   = osRes.data || [];
-      const labors   = lRes.data || [];
+      const clients  = cRes.ok  && cRes.data  ? cRes.data  : [];
+      const vehicles = vRes.ok  && vRes.data  ? vRes.data  : [];
+      const parts    = pRes.ok  && pRes.data  ? pRes.data  : [];
+      // FIX: garante que só conta arrays válidos, nunca lê 204 como 1 item
+      const orders   = osRes.ok && Array.isArray(osRes.data) ? osRes.data : [];
 
       document.getElementById('count-clients').textContent  = clients.length;
       document.getElementById('count-vehicles').textContent = vehicles.length;
       document.getElementById('count-parts').textContent    = parts.length;
       document.getElementById('count-os').textContent       = orders.length;
-      document.getElementById('count-labors').textContent   = labors.length;
-
-      const totalStock = parts.reduce((acc, p) => acc + (p.amount || 0), 0);
-      document.getElementById('count-stock').textContent = totalStock;
-
-      // Build client map for the recent OS table
-      const clientMap = {};
-      clients.forEach(c => { clientMap[c.id] = c.name; });
-
-      // Show last 5 OS
-      const wrap   = document.getElementById('recent-os-wrap');
-      const recent = [...orders].reverse().slice(0, 5);
-
-      if (!recent.length) {
-        wrap.innerHTML = '<div class="empty-state"><div class="empty-state__icon">📋</div><h3>Nenhuma OS criada ainda</h3></div>';
-        return;
-      }
-
-      const rows = recent.map(os => {
-        const id         = os.id ?? os.idSo;
-        const clientName = clientMap[os.idClient] ?? `#${os.idClient}`;
-        const total      = brl(os.totalPrice ?? os.total_price ?? 0);
-        const date       = fmtDate(os.createdAt ?? os.created_at);
-        const hasPdf     = !!(os.pdfPath ?? os.pdf_path);
-        const chip       = hasPdf
-          ? `<span class="chip" style="background:rgba(72,199,116,.1);color:#48c774;border-color:rgba(72,199,116,.25)">PDF ✓</span>`
-          : `<span class="chip">Aberta</span>`;
-        return `<tr>
-          <td class="td-id">#${id}</td>
-          <td>${clientName}</td>
-          <td style="font-size:12px;color:var(--gray-light)">${(os.description || '').slice(0,50)}${(os.description || '').length > 50 ? '...' : ''}</td>
-          <td>${total}</td>
-          <td>${date}</td>
-          <td>${chip}</td>
-          <td><a href="listOS.html" class="btn btn-ghost btn-sm">Ver</a></td>
-        </tr>`;
-      }).join('');
-
-      wrap.innerHTML = `<table>
-        <thead><tr><th>ID</th><th>Cliente</th><th>Descrição</th><th>Total</th><th>Data</th><th>Status</th><th></th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
     }
 
     loadDashboard();

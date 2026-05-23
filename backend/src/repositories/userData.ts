@@ -45,3 +45,11 @@ export const deleteRefreshToken = async (token:string) => {
         [token]
     );
 };
+
+export const findAllUsers = async (): Promise<Partial<UserModel>[]> => {
+  const result = await pool.query(
+    `SELECT id AS "id", name AS "name", email AS "email"
+     FROM users ORDER BY id`
+  );
+  return result.rows;
+};

@@ -2,6 +2,8 @@ import {Request, Response} from 'express';
 import * as oss from '../services/osService';
 import { badRequest } from '../utils/http';
 import { OSModel } from '../Models/OSModel';
+import { gerarOsPdf } from '../services/generatePdf';
+import * as path from 'path';
 
 
 export const getOs = async (req:Request, res:Response) => {
@@ -97,7 +99,17 @@ export const getOrderLabor = async (req: Request, res: Response) => {
 };
 
 export const generatePdf = async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id as string);
-    const httpResponse = await oss.generatePdfService(id);
-    res.status(httpResponse.status).json(httpResponse.body);
+  const id = parseInt(req.params.id as string);
+  try {
+    const caminhoArquivo = await gerarOsPdf(id);
+    const nomeArquivo    = path.basename(caminhoArquivo);
+ 
+    // Salva o caminho relativo na OS
+    await oss.updatePathService(id, { pdfPath: nomeArquivo } as any);
+ 
+    res.status(200).json({ path: nomeArquivo });
+  } catch (err) {
+    console.error('Erro ao gerar PDF:', err);
+    res.status(500).json({ message: 'Erro ao gerar PDF', error: String(err) });
+  }
 };

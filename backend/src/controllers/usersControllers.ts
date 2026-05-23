@@ -42,3 +42,8 @@ export const logout = async (req:Request, res:Response) => {
     const httpResponse = await us.logout(refreshToken);
     res.status(httpResponse.status).json(httpResponse.body);
 }
+
+export const getUsers = async (req: Request, res: Response) => {
+  const httpResponse = await us.getUsersService();
+  res.status(httpResponse.status).json(httpResponse.body);
+};

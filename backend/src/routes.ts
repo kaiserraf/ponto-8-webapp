@@ -15,6 +15,7 @@ router.post('/register', authToken, userController.register);
 router.post('/login', userController.login);
 router.post('/refresh', userController.refresh);
 router.post('/logout', userController.logout);
+router.get('/users', authToken, userController.getUsers);
 
 // client route
 router.get('/clients', authToken, clientController.getClient); // lista de clientes

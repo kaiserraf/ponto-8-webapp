@@ -7,236 +7,121 @@
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="icon" href="../img/logo8.png">
   <style>
-    /* OS Detail Panel */
-    .os-detail-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      z-index: 200;
-      display: flex;
-      align-items: stretch;
-      justify-content: flex-end;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
-    }
-    .os-detail-overlay.open {
-      opacity: 1;
-      pointer-events: all;
-    }
-    .os-detail-panel {
-      background: var(--surface);
-      border-left: 1px solid var(--border);
-      width: 100%;
-      max-width: 560px;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      transform: translateX(100%);
-      transition: transform 0.3s ease;
-      overflow-y: auto;
-    }
-    .os-detail-overlay.open .os-detail-panel {
-      transform: translateX(0);
-    }
-    .os-detail-header {
-      background: var(--surface-2);
-      border-bottom: 1px solid var(--border);
-      padding: 20px 28px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .os-detail-header h2 {
+    /* ── OS-specific styles ── */
+    .os-modal { max-width: 780px; }
+
+    .section-title {
       font-family: var(--font-display);
-      font-size: 24px;
+      font-size: 18px;
       letter-spacing: 1px;
       color: var(--white);
-    }
-    .os-detail-body {
-      padding: 24px 28px;
-      flex: 1;
-    }
-    .os-section {
-      margin-bottom: 24px;
-    }
-    .os-section__title {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--gray-light);
-      margin-bottom: 12px;
+      margin: 24px 0 12px;
       padding-bottom: 8px;
       border-bottom: 1px solid var(--border);
     }
-    .os-info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .os-info-item {}
-    .os-info-item__label {
-      font-size: 11px;
-      color: var(--gray-light);
-      margin-bottom: 2px;
-      font-weight: 500;
-    }
-    .os-info-item__value {
-      font-size: 14px;
-      color: var(--white);
-      font-weight: 500;
-    }
-    .os-line-items {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .os-line-item {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .os-line-item__name {
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
       font-size: 13px;
-      font-weight: 500;
-      color: var(--white);
-      flex: 1;
+      margin-bottom: 8px;
     }
-    .os-line-item__qty {
-      font-size: 12px;
-      color: var(--gray-light);
-      min-width: 40px;
-      text-align: center;
-    }
-    .os-line-item__price {
-      font-size: 13px;
-      color: var(--yellow);
+
+    .items-table th {
+      text-align: left;
+      padding: 8px 10px;
+      font-size: 10px;
       font-weight: 600;
-      min-width: 90px;
-      text-align: right;
-    }
-    .os-line-item__delete {
-      background: none;
-      border: none;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       color: var(--gray-light);
-      cursor: pointer;
-      padding: 2px 4px;
-      font-size: 14px;
-      border-radius: 4px;
-      transition: color 0.15s;
+      background: var(--surface-2);
     }
-    .os-line-item__delete:hover { color: #e05555; }
-    .os-add-row {
-      display: flex;
+
+    .items-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      color: var(--white);
+      vertical-align: middle;
+    }
+
+    .items-table tr:last-child td { border-bottom: none; }
+
+    .add-item-row {
+      display: grid;
       gap: 8px;
       margin-top: 10px;
+      align-items: end;
     }
-    .os-add-row select,
-    .os-add-row input {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--white);
-      font-family: var(--font-body);
-      font-size: 13px;
-      padding: 8px 10px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .os-add-row select:focus,
-    .os-add-row input:focus { border-color: var(--yellow); }
-    .os-add-row select { flex: 2; }
-    .os-add-row input { flex: 1; min-width: 60px; }
-    .os-add-row select option { background: var(--surface-2); }
-    .os-total-bar {
+
+    .add-item-row.parts-row   { grid-template-columns: 2fr 80px 120px auto; }
+    .add-item-row.labor-row   { grid-template-columns: 2fr 120px auto; }
+
+    .add-item-row .form-group { margin: 0; }
+    .add-item-row .form-group label { font-size: 10px; }
+
+    .total-box {
       background: var(--surface-2);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 14px 18px;
+      margin-top: 16px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
     }
-    .os-total-bar__label {
+
+    .total-box__label {
       font-size: 12px;
       font-weight: 600;
       letter-spacing: 1px;
       text-transform: uppercase;
       color: var(--gray-light);
     }
-    .os-total-bar__value {
+
+    .total-box__value {
       font-family: var(--font-display);
       font-size: 28px;
       color: var(--yellow);
       letter-spacing: 1px;
     }
-    .os-detail-footer {
-      padding: 16px 28px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      position: sticky;
-      bottom: 0;
-      background: var(--surface);
-    }
-    /* Status chips */
+
     .status-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
+      display: inline-block;
       padding: 3px 10px;
       border-radius: 20px;
       font-size: 11px;
       font-weight: 600;
-      letter-spacing: 0.3px;
     }
-    .status-chip--open {
-      background: rgba(245,197,24,0.12);
-      color: var(--yellow);
-      border: 1px solid rgba(245,197,24,0.25);
+
+    .chip-open   { background: rgba(245,197,24,.12); color: var(--yellow); border: 1px solid rgba(245,197,24,.3); }
+    .chip-closed { background: rgba(85,200,85,.12);  color: #55c855;       border: 1px solid rgba(85,200,85,.3); }
+
+    .remove-item-btn {
+      background: none;
+      border: none;
+      color: #e05555;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: background .15s;
     }
-    .status-chip--done {
-      background: rgba(72,199,116,0.12);
-      color: #48c774;
-      border: 1px solid rgba(72,199,116,0.25);
+    .remove-item-btn:hover { background: rgba(224,85,85,.12); }
+
+    .modal-scroll { max-height: 80vh; overflow-y: auto; padding-right: 4px; }
+
+    .form-group select option { background: var(--surface-2); }
+
+    /* save state bar */
+    .save-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 14px 0 0;
+      border-top: 1px solid var(--border);
+      margin-top: 16px;
     }
-    .empty-line {
-      padding: 16px;
-      text-align: center;
-      font-size: 13px;
-      color: var(--gray-light);
-      font-style: italic;
-    }
-    /* Modal wider for OS */
-    #modal-create .modal {
-      max-width: 600px;
-    }
-    .form-group textarea {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--white);
-      font-family: var(--font-body);
-      font-size: 14px;
-      padding: 10px 12px;
-      outline: none;
-      transition: border-color 0.2s;
-      width: 100%;
-      resize: vertical;
-      min-height: 80px;
-    }
-    .form-group textarea:focus { border-color: var(--yellow); }
-    .form-group textarea::placeholder { color: var(--gray-light); }
   </style>
 </head>
 <body>
@@ -281,29 +166,22 @@
       </svg>
       Peças
     </a>
-    <span class="sidebar__section">Oficina</span>
     <a href="listOS.html" class="nav-link active">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-        <rect x="9" y="3" width="6" height="4" rx="2"/>
-        <line x1="9" y1="12" x2="15" y2="12"/>
-        <line x1="9" y1="16" x2="12" y2="16"/>
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
       </svg>
       Ordens de Serviço
-    </a>
-    <a href="listLabor.html" class="nav-link">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
-      </svg>
-      Serviços
     </a>
     <span class="sidebar__section">Sistema</span>
     <a href="#" class="nav-link" id="btn-logout">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-        <polyline points="16 17 21 12 16 7"></polyline>
-        <line x1="21" y1="12" x2="9" y2="12"></line>
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
       </svg>
       Sair
     </a>
@@ -328,7 +206,7 @@
         <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
-        <input type="text" id="search-input" placeholder="Buscar por cliente ou descrição..." />
+        <input type="text" id="search-input" placeholder="Buscar por cliente ou veículo..." />
       </div>
     </div>
 
@@ -338,88 +216,177 @@
   </main>
 </div>
 
-<!-- MODAL CRIAR OS -->
+<!-- ═══════════════════════════════════════════════════
+     MODAL CRIAR OS
+═══════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-create">
-  <div class="modal">
+  <div class="modal os-modal">
     <div class="modal__header">
       <h2 class="modal__title">NOVA OS</h2>
       <button class="modal__close" id="close-create">✕</button>
     </div>
-    <form id="form-create" autocomplete="off">
-      <div class="form-grid">
-        <div class="form-group full">
-          <label for="c-client">Cliente</label>
-          <select id="c-client" name="idClient" required>
-            <option value="">Selecione um cliente...</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label for="c-vehicle">Veículo</label>
-          <select id="c-vehicle" name="idVehicle" required>
-            <option value="">Selecione um veículo...</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label for="c-mechanic">Mecânico responsável (ID do usuário)</label>
-          <input id="c-mechanic" name="mechanic" type="number" placeholder="Ex: 1" required />
-        </div>
-        <div class="form-group full">
-          <label for="c-price">Valor total (R$)</label>
-          <input id="c-price" name="totalPrice" type="number" step="0.01" placeholder="0.00" required />
-        </div>
-        <div class="form-group full">
-          <label for="c-desc">Descrição / Laudo</label>
-          <textarea id="c-desc" name="description" placeholder="Descreva o problema e o serviço a ser realizado..." required></textarea>
-        </div>
+
+    <div class="form-grid">
+      <!-- Cliente -->
+      <div class="form-group full">
+        <label for="c-client">Cliente</label>
+        <select id="c-client" required>
+          <option value="">Selecione um cliente...</option>
+        </select>
       </div>
-      <div class="form-actions">
-        <button type="button" class="btn btn-ghost" id="cancel-create">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Abrir OS</button>
+      <!-- Veículo (filtrado pelo cliente) -->
+      <div class="form-group full">
+        <label for="c-vehicle">Veículo</label>
+        <select id="c-vehicle" required>
+          <option value="">Selecione primeiro o cliente...</option>
+        </select>
       </div>
-    </form>
+      <!-- Mecânico -->
+      <div class="form-group full">
+        <label for="c-mechanic">Mecânico responsável</label>
+        <select id="c-mechanic" required>
+          <option value="">Selecione um mecânico...</option>
+        </select>
+      </div>
+      <!-- Descrição / Laudo -->
+      <div class="form-group full">
+        <label for="c-desc">Laudo / Observações</label>
+        <input id="c-desc" type="text" placeholder="Descreva os serviços e observações..." />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" id="cancel-create">Cancelar</button>
+      <button type="button" class="btn btn-primary" id="btn-create-os">Criar OS</button>
+    </div>
   </div>
 </div>
 
-<!-- MODAL EDITAR OS -->
+<!-- ═══════════════════════════════════════════════════
+     MODAL EDITAR / GERENCIAR OS
+═══════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-edit">
-  <div class="modal">
+  <div class="modal os-modal">
     <div class="modal__header">
-      <h2 class="modal__title">EDITAR OS</h2>
+      <h2 class="modal__title">OS <span id="edit-os-id" style="color:var(--yellow)"></span></h2>
       <button class="modal__close" id="close-edit">✕</button>
     </div>
-    <form id="form-edit" autocomplete="off">
-      <input type="hidden" id="e-id" />
-      <div class="form-grid">
-        <div class="form-group full">
-          <label for="e-client">Cliente</label>
-          <select id="e-client" name="idClient">
-            <option value="">Selecione um cliente...</option>
-          </select>
+
+    <div class="modal-scroll">
+
+      <!-- Dados gerais (somente leitura para referência) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px">
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-light);margin-bottom:4px">Cliente</div>
+          <div id="edit-client-name" style="font-size:14px;color:var(--white)">—</div>
         </div>
-        <div class="form-group full">
-          <label for="e-vehicle">Veículo</label>
-          <select id="e-vehicle" name="idVehicle">
-            <option value="">Selecione um veículo...</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label for="e-mechanic">Mecânico responsável (ID)</label>
-          <input id="e-mechanic" name="mechanic" type="number" />
-        </div>
-        <div class="form-group full">
-          <label for="e-price">Valor total (R$)</label>
-          <input id="e-price" name="totalPrice" type="number" step="0.01" />
-        </div>
-        <div class="form-group full">
-          <label for="e-desc">Descrição / Laudo</label>
-          <textarea id="e-desc" name="description"></textarea>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-light);margin-bottom:4px">Veículo</div>
+          <div id="edit-vehicle-name" style="font-size:14px;color:var(--white)">—</div>
         </div>
       </div>
-      <div class="form-actions">
-        <button type="button" class="btn btn-ghost" id="cancel-edit">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Salvar</button>
+
+      <!-- Laudo -->
+      <div class="form-group" style="margin-top:14px">
+        <label for="e-desc">Laudo / Observações</label>
+        <input id="e-desc" type="text" placeholder="Laudo e observações..." />
       </div>
-    </form>
+
+      <!-- ── PEÇAS ── -->
+      <div class="section-title">Produtos / Peças</div>
+
+      <table class="items-table" id="parts-table">
+        <thead>
+          <tr>
+            <th>Peça</th>
+            <th>Qtd</th>
+            <th>V. Unit.</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="parts-tbody">
+          <tr id="parts-empty-row"><td colspan="5" style="color:var(--gray-light);text-align:center;padding:14px">Nenhuma peça adicionada</td></tr>
+        </tbody>
+      </table>
+
+      <!-- Adicionar peça -->
+      <div class="add-item-row parts-row">
+        <div class="form-group">
+          <label>Peça</label>
+          <select id="add-part-select">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Qtd</label>
+          <input id="add-part-qty" type="number" min="1" value="1" placeholder="1" />
+        </div>
+        <div class="form-group">
+          <label>V. Unitário (R$)</label>
+          <input id="add-part-price" type="number" step="0.01" placeholder="0.00" />
+        </div>
+        <button class="btn btn-ghost btn-sm" id="btn-add-part" style="white-space:nowrap">+ Peça</button>
+      </div>
+
+      <!-- ── SERVIÇOS ── -->
+      <div class="section-title">Serviços / Mão de Obra</div>
+
+      <table class="items-table" id="labor-table">
+        <thead>
+          <tr>
+            <th>Serviço</th>
+            <th>Valor</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="labor-tbody">
+          <tr id="labor-empty-row"><td colspan="3" style="color:var(--gray-light);text-align:center;padding:14px">Nenhum serviço adicionado</td></tr>
+        </tbody>
+      </table>
+
+      <!-- Adicionar serviço -->
+      <div class="add-item-row labor-row">
+        <div class="form-group">
+          <label>Serviço</label>
+          <select id="add-labor-select">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Valor (R$)</label>
+          <input id="add-labor-price" type="number" step="0.01" placeholder="0.00" />
+        </div>
+        <button class="btn btn-ghost btn-sm" id="btn-add-labor" style="white-space:nowrap">+ Serviço</button>
+      </div>
+
+      <!-- ── TOTAL ── -->
+      <div class="total-box">
+        <span class="total-box__label">Valor Total da OS</span>
+        <span class="total-box__value" id="os-total">R$ 0,00</span>
+      </div>
+
+      <!-- ── SALVAR / GERAR PDF ── -->
+      <div class="save-bar">
+        <button class="btn btn-ghost" id="cancel-edit">Fechar</button>
+        <button class="btn btn-ghost" id="btn-save-os">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Salvar OS
+        </button>
+        <button class="btn btn-primary" id="btn-gen-pdf">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Gerar PDF
+        </button>
+      </div>
+
+    </div><!-- /modal-scroll -->
   </div>
 </div>
 
@@ -434,9 +401,9 @@
         <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
       </svg>
     </div>
-    <div class="confirm-box__title">ENCERRAR OS</div>
+    <div class="confirm-box__title">REMOVER OS</div>
     <div class="confirm-box__label">
-      Tem certeza que deseja remover a <strong id="confirm-name"></strong>?<br/>
+      Tem certeza que deseja remover a OS <strong id="confirm-name"></strong>?<br/>
       Esta ação não pode ser desfeita.
     </div>
     <div class="confirm-box__actions">
@@ -446,527 +413,457 @@
   </div>
 </div>
 
-<!-- OS DETAIL SIDE PANEL -->
-<div class="os-detail-overlay" id="os-detail-overlay">
-  <div class="os-detail-panel" id="os-detail-panel">
-    <div class="os-detail-header">
-      <h2 id="detail-title">OS #—</h2>
-      <button class="modal__close" id="close-detail">✕</button>
-    </div>
-
-    <div class="os-detail-body">
-      <!-- Info -->
-      <div class="os-section">
-        <div class="os-section__title">Informações</div>
-        <div class="os-info-grid" id="detail-info"></div>
-      </div>
-
-      <!-- Peças -->
-      <div class="os-section">
-        <div class="os-section__title">Peças utilizadas</div>
-        <div class="os-line-items" id="detail-parts"></div>
-        <div class="os-add-row" id="add-part-row">
-          <select id="add-part-select">
-            <option value="">Selecione uma peça...</option>
-          </select>
-          <input id="add-part-qty" type="number" min="1" value="1" placeholder="Qtd" />
-          <input id="add-part-price" type="number" step="0.01" placeholder="Preço unit." />
-          <button class="btn btn-primary btn-sm" id="btn-add-part">+</button>
-        </div>
-      </div>
-
-      <!-- Serviços -->
-      <div class="os-section">
-        <div class="os-section__title">Serviços realizados</div>
-        <div class="os-line-items" id="detail-labors"></div>
-        <div class="os-add-row" id="add-labor-row">
-          <select id="add-labor-select">
-            <option value="">Selecione um serviço...</option>
-          </select>
-          <input id="add-labor-price" type="number" step="0.01" placeholder="Valor" />
-          <button class="btn btn-primary btn-sm" id="btn-add-labor">+</button>
-        </div>
-      </div>
-
-      <!-- Total -->
-      <div class="os-section">
-        <div class="os-section__title">Total</div>
-        <div class="os-total-bar">
-          <span class="os-total-bar__label">Valor Total da OS</span>
-          <span class="os-total-bar__value" id="detail-total">R$ 0,00</span>
-        </div>
-      </div>
-
-      <!-- PDF -->
-      <div class="os-section">
-        <div class="os-section__title">Documento</div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <button class="btn btn-ghost" id="btn-gen-pdf">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
-              <polyline points="10 9 9 9 8 9"/>
-            </svg>
-            Gerar PDF
-          </button>
-          <span id="pdf-link-wrap" style="font-size:13px;color:var(--gray-light)"></span>
-        </div>
-      </div>
-    </div>
-
-    <div class="os-detail-footer">
-      <button class="btn btn-ghost btn-sm" id="detail-btn-edit">Editar OS</button>
-      <button class="btn btn-danger btn-sm" id="detail-btn-delete">Remover OS</button>
-    </div>
-  </div>
-</div>
-
 <script type="module">
-  import { logout } from '../js/authGuard.js';
-  import {
-    getOs, createOs, updateOs, deleteOs,
-    getClients, getVehicles,
-    getParts, getLabors,
-    getOsParts, getOsLabors,
-    addPartToOs, removePartFromOs,
-    addLaborToOs, removeLaborFromOs,
-    generateOsPdf
-  } from '../js/api.js';
-  import { toast, openModal, closeModal, bindModalOverlayClose } from '../js/ui.js';
+import { logout }    from '../js/authGuard.js';
+import { toast, openModal, closeModal, bindModalOverlayClose } from '../js/ui.js';
+import {
+  getClients, getVehicles, getParts
+} from '../js/api.js';
+import { getOs, getOsById, createOs, updateOs, deleteOs,
+         insertOrderParts, deleteOrderParts,
+         insertOrderLabor, deleteOrderLabor,
+         generatePdf, getUsers, getLabors } from '../js/osApi.js';
 
-  document.getElementById('btn-logout').onclick = (e) => { e.preventDefault(); logout(); };
+document.getElementById('btn-logout').onclick = (e) => { e.preventDefault(); logout(); };
 
-  let allOS        = [];
-  let clientMap    = {};
-  let vehicleMap   = {};
-  let allClients   = [];
-  let allVehicles  = [];
-  let allParts     = [];
-  let allLabors    = [];
-  let pendingDeleteId = null;
-  let currentOsId  = null;
-  let currentOsParts  = [];
-  let currentOsLabors = [];
+// ── State ──────────────────────────────────────────────────
+let allOs       = [];
+let clientMap   = {};   // id → {name}
+let vehicleMap  = {};   // id → {model, brand, clientId}
+let partsMap    = {};   // id → {namePart, saleValue}
+let laborMap    = {};   // id → {laborName}
+let usersMap    = {};   // id → name
+let allVehicles = [];
+let allParts    = [];
+let allLabors   = [];
 
-  const brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  const fmtDate = (d) => d ? new Date(d).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' }) : '—';
+// currently editing
+let currentOsId    = null;
+let currentParts   = [];  // [{id, idPart, amount, unitPrice}]
+let currentLabors  = [];  // [{id, idLabor, value}]
 
-  // ---- Modal bindings ----
-  bindModalOverlayClose('modal-create');
-  bindModalOverlayClose('modal-edit');
-  document.getElementById('close-create').onclick  = () => closeModal('modal-create');
-  document.getElementById('cancel-create').onclick = () => closeModal('modal-create');
-  document.getElementById('close-edit').onclick    = () => closeModal('modal-edit');
-  document.getElementById('cancel-edit').onclick   = () => closeModal('modal-edit');
+const brl = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-  document.getElementById('btn-new').onclick = () => {
-    document.getElementById('form-create').reset();
-    openModal('modal-create');
-  };
+// ── Bootstrap ──────────────────────────────────────────────
+async function bootstrap() {
+  const [cRes, vRes, pRes, lRes, uRes] = await Promise.all([
+    getClients(), getVehicles(), getParts(), getLabors(), getUsers()
+  ]);
 
-  // ---- Confirm delete ----
-  const confirmOverlay = document.getElementById('confirm-overlay');
-  confirmOverlay.addEventListener('click', (e) => { if (e.target === confirmOverlay) closeConfirm(); });
-  document.getElementById('confirm-cancel').onclick = closeConfirm;
-  document.getElementById('confirm-ok').onclick = async () => {
-    if (pendingDeleteId === null) return;
-    const id = pendingDeleteId;
-    closeConfirm();
-    const { ok } = await deleteOs(id);
-    if (ok) { toast('OS removida.'); await loadOS(); closeDetail(); }
-    else toast('Erro ao remover OS.', 'error');
-  };
-
-  function openConfirm(id, label) {
-    pendingDeleteId = id;
-    document.getElementById('confirm-name').textContent = label;
-    confirmOverlay.classList.add('open');
+  if (cRes.ok && cRes.data)  cRes.data.forEach(c => { clientMap[c.id] = c.name; });
+  if (vRes.ok && vRes.data)  {
+    allVehicles = vRes.data;
+    vRes.data.forEach(v => {
+      const id = v.idVehicle ?? v.id_vehicle;
+      vehicleMap[id] = {
+        model:    v.vehicleModel ?? v.vehicle_model,
+        brand:    v.vehicleBrand ?? v.vehicle_brand,
+        clientId: v.cliendId    ?? v.client_id
+      };
+    });
   }
-  function closeConfirm() { pendingDeleteId = null; confirmOverlay.classList.remove('open'); }
-
-  // ---- Detail Panel ----
-  const detailOverlay = document.getElementById('os-detail-overlay');
-  detailOverlay.addEventListener('click', (e) => { if (e.target === detailOverlay) closeDetail(); });
-  document.getElementById('close-detail').onclick = closeDetail;
-
-  function closeDetail() {
-    detailOverlay.classList.remove('open');
-    currentOsId = null;
+  if (pRes.ok && pRes.data)  {
+    allParts = pRes.data;
+    pRes.data.forEach(p => {
+      const id = p.idPart ?? p.id_part;
+      partsMap[id] = { name: p.namePart ?? p.name_part, saleValue: p.saleValue ?? p.sale_value };
+    });
+  }
+  if (lRes.ok && lRes.data)  {
+    allLabors = lRes.data;
+    lRes.data.forEach(l => { laborMap[l.idLabor] = l.laborName; });
+  }
+  if (uRes.ok && uRes.data)  {
+    uRes.data.forEach(u => { usersMap[u.id] = u.name; });
   }
 
-  async function openDetail(osId) {
-    currentOsId = osId;
-    detailOverlay.classList.add('open');
-    await refreshDetail();
-  }
+  populateCreateSelects();
+  await loadOs();
+}
 
-  async function refreshDetail() {
-    const os = allOS.find(o => o.id === currentOsId || o.idSo === currentOsId);
-    if (!os) return;
-    const id = os.id ?? os.idSo;
+// ── Populate selects (modal criar) ────────────────────────
+function populateCreateSelects() {
+  // Clientes
+  const cSel = document.getElementById('c-client');
+  cSel.innerHTML = '<option value="">Selecione um cliente...</option>' +
+    Object.entries(clientMap).map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
 
-    document.getElementById('detail-title').textContent = `OS #${id}`;
+  // Mecânicos
+  const mSel = document.getElementById('c-mechanic');
+  mSel.innerHTML = '<option value="">Selecione um mecânico...</option>' +
+    Object.entries(usersMap).map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
 
-    // Info grid
-    const clientName  = clientMap[os.idClient]  ?? `#${os.idClient}`;
-    const vehicleInfo = vehicleMap[os.idVehicle] ?? `#${os.idVehicle}`;
-    document.getElementById('detail-info').innerHTML = `
-      <div class="os-info-item">
-        <div class="os-info-item__label">Cliente</div>
-        <div class="os-info-item__value">${clientName}</div>
-      </div>
-      <div class="os-info-item">
-        <div class="os-info-item__label">Veículo</div>
-        <div class="os-info-item__value">${vehicleInfo}</div>
-      </div>
-      <div class="os-info-item">
-        <div class="os-info-item__label">Mecânico (ID)</div>
-        <div class="os-info-item__value">${os.mechanic ?? '—'}</div>
-      </div>
-      <div class="os-info-item">
-        <div class="os-info-item__label">Abertura</div>
-        <div class="os-info-item__value">${fmtDate(os.createdAt)}</div>
-      </div>
-      <div class="os-info-item" style="grid-column:1/-1">
-        <div class="os-info-item__label">Descrição</div>
-        <div class="os-info-item__value" style="color:var(--white-dim);font-size:13px;font-weight:400">${os.description || '—'}</div>
-      </div>`;
-
-    // Parts
-    const partsRes  = await getOsParts(id);
-    currentOsParts  = partsRes.data || [];
-    renderDetailParts(id);
-
-    // Labors
-    const laborsRes = await getOsLabors(id);
-    currentOsLabors = laborsRes.data || [];
-    renderDetailLabors(id);
-
-    // Total
-    updateDetailTotal(os);
-
-    // PDF link
-    const pdfWrap = document.getElementById('pdf-link-wrap');
-    if (os.pdfPath) {
-      const filename = os.pdfPath.split(/[\\/]/).pop();
-      pdfWrap.innerHTML = `<a href="/pdfs/${filename}" target="_blank" style="color:var(--yellow);text-decoration:underline">Abrir PDF</a>`;
-    } else {
-      pdfWrap.textContent = 'PDF ainda não gerado.';
-    }
-
-    // Wire footer buttons
-    document.getElementById('detail-btn-edit').onclick   = () => openEditModal(id);
-    document.getElementById('detail-btn-delete').onclick = () => openConfirm(id, `OS #${id}`);
-  }
-
-  function updateDetailTotal(os) {
-    const partsTotal  = currentOsParts.reduce((s, p) => s + (p.unitPrice ?? p.unit_price ?? 0) * (p.amount ?? 1), 0);
-    const laborsTotal = currentOsLabors.reduce((s, l) => s + (l.unitPrice ?? l.unit_price ?? l.value ?? 0), 0);
-    const total = partsTotal + laborsTotal || os.totalPrice || os.total_price || 0;
-    document.getElementById('detail-total').textContent = brl(total);
-  }
-
-  function renderDetailParts(osId) {
-    const container = document.getElementById('detail-parts');
-    if (!currentOsParts.length) {
-      container.innerHTML = '<div class="empty-line">Nenhuma peça adicionada.</div>';
-      return;
-    }
-    container.innerHTML = currentOsParts.map(p => {
-      const partId  = p.idPart  ?? p.id_part;
-      const part    = allParts.find(x => (x.idPart ?? x.id_part) === partId);
-      const name    = part ? (part.namePart ?? part.name_part) : `Peça #${partId}`;
-      const qty     = p.amount ?? 1;
-      const price   = p.unitPrice ?? p.unit_price ?? 0;
-      return `<div class="os-line-item">
-        <span class="os-line-item__name">${name}</span>
-        <span class="os-line-item__qty">×${qty}</span>
-        <span class="os-line-item__price">${brl(price * qty)}</span>
-        <button class="os-line-item__delete" onclick="removePart(${osId},${partId})" title="Remover">✕</button>
-      </div>`;
+  // Peças (modal editar)
+  const pSel = document.getElementById('add-part-select');
+  pSel.innerHTML = '<option value="">Selecione...</option>' +
+    allParts.map(p => {
+      const id  = p.idPart ?? p.id_part;
+      const nm  = p.namePart ?? p.name_part;
+      return `<option value="${id}">${nm}</option>`;
     }).join('');
-  }
 
-  function renderDetailLabors(osId) {
-    const container = document.getElementById('detail-labors');
-    if (!currentOsLabors.length) {
-      container.innerHTML = '<div class="empty-line">Nenhum serviço adicionado.</div>';
-      return;
-    }
-    container.innerHTML = currentOsLabors.map(l => {
-      const laborId = l.idLabor ?? l.id_labor;
-      const labor   = allLabors.find(x => (x.idLabor ?? x.id_labor) === laborId);
-      const name    = labor ? (labor.laborName ?? labor.labor_name) : `Serviço #${laborId}`;
-      const price   = l.unitPrice ?? l.unit_price ?? l.value ?? 0;
-      return `<div class="os-line-item">
-        <span class="os-line-item__name">${name}</span>
-        <span class="os-line-item__qty">×1</span>
-        <span class="os-line-item__price">${brl(price)}</span>
-        <button class="os-line-item__delete" onclick="removeLabor(${osId},${laborId})" title="Remover">✕</button>
-      </div>`;
-    }).join('');
-  }
+  // Serviços (modal editar)
+  const lSel = document.getElementById('add-labor-select');
+  lSel.innerHTML = '<option value="">Selecione...</option>' +
+    allLabors.map(l => `<option value="${l.idLabor}">${l.laborName}</option>`).join('');
+}
 
-  // Add part to OS
-  document.getElementById('btn-add-part').onclick = async () => {
-    const select = document.getElementById('add-part-select');
-    const qty    = parseInt(document.getElementById('add-part-qty').value) || 1;
-    const price  = parseFloat(document.getElementById('add-part-price').value) || 0;
-    const partId = parseInt(select.value);
-    if (!partId || !currentOsId) return;
-
-    const body = { idSo: currentOsId, idPart: partId, amount: qty, unitPrice: price };
-    const { ok } = await addPartToOs(currentOsId, body);
-    if (ok) {
-      select.value = '';
-      document.getElementById('add-part-qty').value   = 1;
-      document.getElementById('add-part-price').value = '';
-      toast('Peça adicionada!');
-      await refreshDetail();
-    } else {
-      toast('Erro ao adicionar peça.', 'error');
-    }
-  };
-
-  // Add labor to OS
-  document.getElementById('btn-add-labor').onclick = async () => {
-    const select  = document.getElementById('add-labor-select');
-    const price   = parseFloat(document.getElementById('add-labor-price').value) || 0;
-    const laborId = parseInt(select.value);
-    if (!laborId || !currentOsId) return;
-
-    const body = { idSo: currentOsId, idLabor: laborId, value: price };
-    const { ok } = await addLaborToOs(currentOsId, body);
-    if (ok) {
-      select.value = '';
-      document.getElementById('add-labor-price').value = '';
-      toast('Serviço adicionado!');
-      await refreshDetail();
-    } else {
-      toast('Erro ao adicionar serviço.', 'error');
-    }
-  };
-
-  // Remove part
-  window.removePart = async (osId, partId) => {
-    const { ok } = await removePartFromOs(osId, partId);
-    if (ok) { toast('Peça removida.'); await refreshDetail(); }
-    else toast('Erro ao remover peça.', 'error');
-  };
-
-  // Remove labor
-  window.removeLabor = async (osId, laborId) => {
-    const { ok } = await removeLaborFromOs(osId, laborId);
-    if (ok) { toast('Serviço removido.'); await refreshDetail(); }
-    else toast('Erro ao remover serviço.', 'error');
-  };
-
-  // Generate PDF
-  document.getElementById('btn-gen-pdf').onclick = async () => {
-    if (!currentOsId) return;
-    const btn = document.getElementById('btn-gen-pdf');
-    btn.disabled = true;
-    btn.textContent = 'Gerando...';
-    const { ok, data } = await generateOsPdf(currentOsId);
-    btn.disabled = false;
-    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Gerar PDF`;
-    if (ok) {
-      toast('PDF gerado com sucesso!');
-      // Refresh OS list to pick up pdfPath
-      await loadOS();
-      await refreshDetail();
-    } else {
-      toast('Erro ao gerar PDF.', 'error');
-    }
-  };
-
-  // Edit modal from detail
-  function openEditModal(id) {
-    const os = allOS.find(o => (o.id ?? o.idSo) === id);
-    if (!os) return;
-    document.getElementById('e-id').value       = id;
-    document.getElementById('e-client').value   = os.idClient  ?? '';
-    document.getElementById('e-vehicle').value  = os.idVehicle ?? '';
-    document.getElementById('e-mechanic').value = os.mechanic  ?? '';
-    document.getElementById('e-price').value    = os.totalPrice ?? os.total_price ?? '';
-    document.getElementById('e-desc').value     = os.description ?? '';
-    openModal('modal-edit');
-  }
-
-  // Search
-  document.getElementById('search-input').addEventListener('input', (e) => {
-    const q = e.target.value.toLowerCase();
-    renderTable(allOS.filter(o => {
-      const clientName = clientMap[o.idClient] ?? '';
-      const desc       = (o.description ?? '').toLowerCase();
-      return clientName.toLowerCase().includes(q) || desc.includes(q) || String(o.id ?? o.idSo).includes(q);
-    }));
+// Filtrar veículos pelo cliente selecionado (modal criar)
+document.getElementById('c-client').addEventListener('change', function () {
+  const clientId = parseInt(this.value);
+  const vSel = document.getElementById('c-vehicle');
+  const filtered = allVehicles.filter(v => {
+    const cid = parseInt(v.cliendId ?? v.client_id);
+    return cid === clientId;
   });
 
-  // ---- Load data ----
-  async function loadAll() {
-    const [cRes, vRes, pRes, lRes] = await Promise.all([
-      getClients(), getVehicles(), getParts(), getLabors()
-    ]);
-
-    if (cRes.ok && cRes.data) {
-      allClients = cRes.data;
-      clientMap  = {};
-      cRes.data.forEach(c => { clientMap[c.id] = c.name; });
-      const opts = cRes.data.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-      const base = '<option value="">Selecione um cliente...</option>';
-      document.getElementById('c-client').innerHTML = base + opts;
-      document.getElementById('e-client').innerHTML = base + opts;
-    }
-
-    if (vRes.ok && vRes.data) {
-      allVehicles = vRes.data;
-      vehicleMap  = {};
-      vRes.data.forEach(v => {
-        const id    = v.idVehicle ?? v.id_vehicle;
-        const brand = v.vehicleBrand ?? v.vehicle_brand ?? '';
-        const model = v.vehicleModel ?? v.vehicle_model ?? '';
-        vehicleMap[id] = `${brand} ${model}`.trim();
-      });
-      const opts = vRes.data.map(v => {
-        const id    = v.idVehicle ?? v.id_vehicle;
-        const brand = v.vehicleBrand ?? v.vehicle_brand ?? '';
-        const model = v.vehicleModel ?? v.vehicle_model ?? '';
-        return `<option value="${id}">${brand} ${model}</option>`;
-      }).join('');
-      const base = '<option value="">Selecione um veículo...</option>';
-      document.getElementById('c-vehicle').innerHTML = base + opts;
-      document.getElementById('e-vehicle').innerHTML = base + opts;
-    }
-
-    if (pRes.ok && pRes.data) {
-      allParts = pRes.data;
-      const opts = pRes.data.map(p => {
-        const id   = p.idPart ?? p.id_part;
-        const name = p.namePart ?? p.name_part;
-        return `<option value="${id}">${name}</option>`;
-      }).join('');
-      document.getElementById('add-part-select').innerHTML =
-        '<option value="">Selecione uma peça...</option>' + opts;
-    }
-
-    if (lRes.ok && lRes.data) {
-      allLabors = lRes.data;
-      const opts = lRes.data.map(l => {
-        const id   = l.idLabor ?? l.id_labor;
-        const name = l.laborName ?? l.labor_name;
-        return `<option value="${id}">${name}</option>`;
-      }).join('');
-      document.getElementById('add-labor-select').innerHTML =
-        '<option value="">Selecione um serviço...</option>' + opts;
-    }
+  if (!clientId || !filtered.length) {
+    vSel.innerHTML = '<option value="">Nenhum veículo para este cliente</option>';
+    return;
   }
 
-  async function loadOS() {
-    const wrap = document.getElementById('table-wrap');
-    wrap.innerHTML = '<div class="spinner"></div>';
-    const { data, ok } = await getOs();
-    if (!ok || !data) { wrap.innerHTML = '<div class="empty-state"><h3>Erro ao carregar</h3></div>'; return; }
-    allOS = data;
-    document.getElementById('meta-count').textContent =
-      `${data.length} ordem${data.length !== 1 ? 's' : ''} de serviço`;
-    renderTable(data);
-  }
+  vSel.innerHTML = '<option value="">Selecione um veículo...</option>' +
+    filtered.map(v => {
+      const id    = v.idVehicle ?? v.id_vehicle;
+      const brand = v.vehicleBrand ?? v.vehicle_brand;
+      const model = v.vehicleModel ?? v.vehicle_model;
+      const plate = v.plate;
+      return `<option value="${id}">${brand} ${model} — ${plate}</option>`;
+    }).join('');
+});
 
-  function renderTable(list) {
-    const wrap = document.getElementById('table-wrap');
-    if (!list.length) {
-      wrap.innerHTML = `<div class="empty-state"><div class="empty-state__icon">📋</div><h3>Nenhuma OS encontrada</h3></div>`;
-      return;
-    }
-    const rows = list.map(os => {
-      const id          = os.id ?? os.idSo;
-      const clientName  = clientMap[os.idClient]  ?? `#${os.idClient}`;
-      const vehicleInfo = vehicleMap[os.idVehicle] ?? `#${os.idVehicle}`;
-      const total       = brl(os.totalPrice ?? os.total_price ?? 0);
-      const date        = fmtDate(os.createdAt ?? os.created_at);
-      const hasPdf      = !!(os.pdfPath ?? os.pdf_path);
-      const pdfChip     = hasPdf
-        ? `<span class="chip" style="background:rgba(72,199,116,.1);color:#48c774;border-color:rgba(72,199,116,.25)">PDF ✓</span>`
-        : `<span class="chip" style="background:rgba(245,197,24,.08);color:var(--yellow);border-color:rgba(245,197,24,.2)">Aberta</span>`;
-      const desc = (os.description ?? '').slice(0, 40) + (os.description?.length > 40 ? '...' : '');
-      return `<tr style="cursor:pointer" onclick="viewDetail(${id})">
+// Preencher preço sugerido ao selecionar peça
+document.getElementById('add-part-select').addEventListener('change', function () {
+  const id = parseInt(this.value);
+  if (id && partsMap[id]) {
+    document.getElementById('add-part-price').value = partsMap[id].saleValue;
+  }
+});
+
+// ── Carregar OS ───────────────────────────────────────────
+async function loadOs() {
+  const wrap = document.getElementById('table-wrap');
+  wrap.innerHTML = '<div class="spinner"></div>';
+  const { data, ok } = await getOs();
+  if (!ok || !data) {
+    wrap.innerHTML = '<div class="empty-state"><h3>Erro ao carregar</h3></div>';
+    return;
+  }
+  allOs = data;
+  document.getElementById('meta-count').textContent =
+    `${data.length} ordem${data.length !== 1 ? 'ns' : ''} de serviço`;
+  renderTable(data);
+}
+
+function renderTable(list) {
+  const wrap = document.getElementById('table-wrap');
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-state__icon"></div><h3>Nenhuma OS encontrada</h3></div>`;
+    return;
+  }
+  const rows = list.map(os => {
+    const id        = os.idSo     ?? os.id_so ?? os.id;
+    const clientId  = os.idClient ?? os.id_client;
+    const vehicleId = os.idVehicle ?? os.id_vehicle;
+    const mechId    = os.mechanic;
+    const total     = parseFloat(os.totalPrice ?? os.total_price ?? 0);
+    const date      = new Date(os.createdAt ?? os.created_at).toLocaleDateString('pt-BR');
+
+    const clientName  = clientMap[clientId]  ?? `#${clientId}`;
+    const vInfo       = vehicleMap[vehicleId];
+    const vehicleName = vInfo ? `${vInfo.brand} ${vInfo.model}` : `#${vehicleId}`;
+    const mechName    = usersMap[mechId]     ?? `#${mechId}`;
+
+    return `
+      <tr>
         <td class="td-id">#${id}</td>
         <td>${clientName}</td>
-        <td>${vehicleInfo}</td>
-        <td style="font-size:12px;color:var(--gray-light)">${desc}</td>
-        <td>${total}</td>
+        <td>${vehicleName}</td>
+        <td>${mechName}</td>
+        <td>${brl(total)}</td>
         <td>${date}</td>
-        <td>${pdfChip}</td>
         <td>
-          <div class="td-actions" onclick="event.stopPropagation()">
-            <button class="btn btn-ghost btn-sm" onclick="viewDetail(${id})">Ver</button>
-            <button class="btn btn-danger btn-sm" onclick="openConfirmDelete(${id})">Remover</button>
+          <div class="td-actions">
+            <button class="btn btn-ghost btn-sm" onclick="editOs(${id})">Gerenciar</button>
+            <button class="btn btn-danger btn-sm" onclick="triggerDelete(${id})">Remover</button>
           </div>
         </td>
       </tr>`;
-    }).join('');
-    wrap.innerHTML = `<table>
+  }).join('');
+
+  wrap.innerHTML = `
+    <table>
       <thead><tr>
-        <th>ID</th><th>Cliente</th><th>Veículo</th><th>Descrição</th><th>Total</th><th>Data</th><th>Status</th><th></th>
+        <th>OS</th><th>Cliente</th><th>Veículo</th><th>Mecânico</th>
+        <th>Total</th><th>Data</th><th></th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
+}
+
+// Busca local
+document.getElementById('search-input').addEventListener('input', (e) => {
+  const q = e.target.value.toLowerCase();
+  renderTable(allOs.filter(os => {
+    const cid = os.idClient ?? os.id_client;
+    const vid = os.idVehicle ?? os.id_vehicle;
+    const cn  = (clientMap[cid]  ?? '').toLowerCase();
+    const vn  = vehicleMap[vid] ? `${vehicleMap[vid].brand} ${vehicleMap[vid].model}`.toLowerCase() : '';
+    return cn.includes(q) || vn.includes(q);
+  }));
+});
+
+// ── Modal Criar ───────────────────────────────────────────
+bindModalOverlayClose('modal-create');
+document.getElementById('close-create').onclick  = () => closeModal('modal-create');
+document.getElementById('cancel-create').onclick = () => closeModal('modal-create');
+
+document.getElementById('btn-new').onclick = () => {
+  document.getElementById('c-client').value   = '';
+  document.getElementById('c-vehicle').innerHTML = '<option value="">Selecione primeiro o cliente...</option>';
+  document.getElementById('c-mechanic').value = '';
+  document.getElementById('c-desc').value     = '';
+  openModal('modal-create');
+};
+
+document.getElementById('btn-create-os').onclick = async () => {
+  const clientId  = parseInt(document.getElementById('c-client').value);
+  const vehicleId = parseInt(document.getElementById('c-vehicle').value);
+  const mechanic  = parseInt(document.getElementById('c-mechanic').value);
+  const desc      = document.getElementById('c-desc').value.trim();
+
+  if (!clientId || !vehicleId || !mechanic) {
+    toast('Preencha cliente, veículo e mecânico.', 'error');
+    return;
   }
 
-  // Create OS
-  document.getElementById('form-create').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const body = {
-      idClient:   parseInt(fd.get('idClient')),
-      idVehicle:  parseInt(fd.get('idVehicle')),
-      mechanic:   parseInt(fd.get('mechanic')),
-      totalPrice: parseFloat(fd.get('totalPrice')),
-      description: fd.get('description'),
-      createdAt:  new Date().toISOString()
-    };
-    const { ok } = await createOs(body);
-    if (ok) { toast('OS criada!'); closeModal('modal-create'); await loadOS(); }
-    else toast('Erro ao criar OS.', 'error');
-  });
+  const body = {
+    idClient:   clientId,
+    idVehicle:  vehicleId,
+    mechanic:   mechanic,
+    description: desc || '',
+    totalPrice: 0,
+    createdAt:  new Date().toISOString()
+  };
 
-  // Update OS
-  document.getElementById('form-edit').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = parseInt(document.getElementById('e-id').value);
-    const fd = new FormData(e.target);
-    const body = {};
-    const client  = fd.get('idClient');
-    const vehicle = fd.get('idVehicle');
-    const mech    = fd.get('mechanic');
-    const price   = fd.get('totalPrice');
-    const desc    = fd.get('description');
-    if (client)  body.idClient   = parseInt(client);
-    if (vehicle) body.idVehicle  = parseInt(vehicle);
-    if (mech)    body.mechanic   = parseInt(mech);
-    if (price)   body.totalPrice = parseFloat(price);
-    if (desc)    body.description = desc;
-    const { ok } = await updateOs(id, body);
-    if (ok) {
-      toast('OS atualizada!');
-      closeModal('modal-edit');
-      await loadOS();
-      if (currentOsId === id) await refreshDetail();
-    } else {
-      toast('Erro ao atualizar OS.', 'error');
-    }
-  });
+  const { ok, data } = await createOs(body);
+  if (ok && data) {
+    toast('OS criada com sucesso!');
+    closeModal('modal-create');
+    await loadOs();
+    // Abre o editor da OS recém-criada
+    const newId = data.idSo ?? data.id_so ?? data.id;
+    if (newId) editOs(newId);
+  } else {
+    toast('Erro ao criar OS.', 'error');
+  }
+};
 
-  // Expose globals for inline handlers
-  window.viewDetail         = openDetail;
-  window.openConfirmDelete  = (id) => openConfirm(id, `OS #${id}`);
+// ── Modal Editar / Gerenciar ──────────────────────────────
+bindModalOverlayClose('modal-edit');
+document.getElementById('close-edit').onclick  = () => { closeModal('modal-edit'); loadOs(); };
+document.getElementById('cancel-edit').onclick = () => { closeModal('modal-edit'); loadOs(); };
 
-  // Init
-  await loadAll();
-  await loadOS();
+window.editOs = async (id) => {
+  currentOsId   = id;
+  currentParts  = [];
+  currentLabors = [];
+
+  // Busca detalhes da OS
+  const { data: os, ok } = await getOsById(id);
+  if (!ok || !os) { toast('Erro ao carregar OS.', 'error'); return; }
+
+  const clientId  = os.idClient  ?? os.id_client;
+  const vehicleId = os.idVehicle ?? os.id_vehicle;
+  const vInfo     = vehicleMap[vehicleId];
+
+  document.getElementById('edit-os-id').textContent     = `#${id}`;
+  document.getElementById('edit-client-name').textContent  = clientMap[clientId]  ?? `#${clientId}`;
+  document.getElementById('edit-vehicle-name').textContent = vInfo
+    ? `${vInfo.brand} ${vInfo.model}` : `#${vehicleId}`;
+  document.getElementById('e-desc').value = os.description ?? '';
+
+  // Carrega peças e serviços da OS
+  // Nota: o backend não retorna os itens junto com a OS — precisamos buscá-los
+  // via endpoints separados. Como não há GET /os/:id/parts no router atual,
+  // usamos o que temos: a OS já tem total, e os itens são gerenciados pelo usuário.
+  // Ao abrir o modal os itens partem do zero (o total já está salvo na OS).
+  renderPartsTable();
+  renderLaborTable();
+  recalcTotal();
+
+  openModal('modal-edit');
+};
+
+// ── Peças ─────────────────────────────────────────────────
+document.getElementById('btn-add-part').onclick = async () => {
+  const partId   = parseInt(document.getElementById('add-part-select').value);
+  const qty      = parseInt(document.getElementById('add-part-qty').value) || 1;
+  const price    = parseFloat(document.getElementById('add-part-price').value);
+
+  if (!partId)           { toast('Selecione uma peça.', 'error'); return; }
+  if (!price || price<=0){ toast('Informe o valor unitário.', 'error'); return; }
+
+  const body = { idSo: currentOsId, idPart: partId, amount: qty, unitPrice: price };
+  const { ok, data } = await insertOrderParts(currentOsId, body);
+  if (!ok) { toast('Erro ao adicionar peça.', 'error'); return; }
+
+  currentParts.push({ id: data.id, idPart: partId, amount: qty, unitPrice: price });
+  renderPartsTable();
+  recalcTotal();
+
+  // Limpar campos
+  document.getElementById('add-part-select').value = '';
+  document.getElementById('add-part-qty').value    = '1';
+  document.getElementById('add-part-price').value  = '';
+};
+
+async function removePart(localIdx) {
+  const item = currentParts[localIdx];
+  if (!item) return;
+  const { ok } = await deleteOrderParts(currentOsId, item.idPart);
+  if (!ok) { toast('Erro ao remover peça.', 'error'); return; }
+  currentParts.splice(localIdx, 1);
+  renderPartsTable();
+  recalcTotal();
+}
+window.removePart = removePart;
+
+function renderPartsTable() {
+  const tbody = document.getElementById('parts-tbody');
+  if (!currentParts.length) {
+    tbody.innerHTML = '<tr id="parts-empty-row"><td colspan="5" style="color:var(--gray-light);text-align:center;padding:14px">Nenhuma peça adicionada</td></tr>';
+    return;
+  }
+  tbody.innerHTML = currentParts.map((p, i) => {
+    const name  = partsMap[p.idPart]?.name ?? `#${p.idPart}`;
+    const total = p.amount * p.unitPrice;
+    return `<tr>
+      <td>${name}</td>
+      <td>${p.amount}</td>
+      <td>${brl(p.unitPrice)}</td>
+      <td>${brl(total)}</td>
+      <td><button class="remove-item-btn" onclick="removePart(${i})" title="Remover">×</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Serviços ──────────────────────────────────────────────
+document.getElementById('btn-add-labor').onclick = async () => {
+  const laborId = parseInt(document.getElementById('add-labor-select').value);
+  const price   = parseFloat(document.getElementById('add-labor-price').value);
+
+  if (!laborId)          { toast('Selecione um serviço.', 'error'); return; }
+  if (!price || price<=0){ toast('Informe o valor do serviço.', 'error'); return; }
+
+  const body = { idSo: currentOsId, idLabor: laborId, value: price };
+  const { ok, data } = await insertOrderLabor(currentOsId, body);
+  if (!ok) { toast('Erro ao adicionar serviço.', 'error'); return; }
+
+  currentLabors.push({ id: data.id, idLabor: laborId, value: price });
+  renderLaborTable();
+  recalcTotal();
+
+  document.getElementById('add-labor-select').value = '';
+  document.getElementById('add-labor-price').value  = '';
+};
+
+async function removeLabor(localIdx) {
+  const item = currentLabors[localIdx];
+  if (!item) return;
+  const { ok } = await deleteOrderLabor(currentOsId, item.idLabor);
+  if (!ok) { toast('Erro ao remover serviço.', 'error'); return; }
+  currentLabors.splice(localIdx, 1);
+  renderLaborTable();
+  recalcTotal();
+}
+window.removeLabor = removeLabor;
+
+function renderLaborTable() {
+  const tbody = document.getElementById('labor-tbody');
+  if (!currentLabors.length) {
+    tbody.innerHTML = '<tr id="labor-empty-row"><td colspan="3" style="color:var(--gray-light);text-align:center;padding:14px">Nenhum serviço adicionado</td></tr>';
+    return;
+  }
+  tbody.innerHTML = currentLabors.map((l, i) => {
+    const name = laborMap[l.idLabor] ?? `#${l.idLabor}`;
+    return `<tr>
+      <td>${name}</td>
+      <td>${brl(l.value)}</td>
+      <td><button class="remove-item-btn" onclick="removeLabor(${i})" title="Remover">×</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Total ─────────────────────────────────────────────────
+function recalcTotal() {
+  const totalParts  = currentParts.reduce((acc, p) => acc + (p.amount * p.unitPrice), 0);
+  const totalLabors = currentLabors.reduce((acc, l) => acc + l.value, 0);
+  const total = totalParts + totalLabors;
+  document.getElementById('os-total').textContent = brl(total);
+  return total;
+}
+
+// ── Salvar OS ─────────────────────────────────────────────
+document.getElementById('btn-save-os').onclick = async () => {
+  const total = recalcTotal();
+  const desc  = document.getElementById('e-desc').value.trim();
+
+  const { ok } = await updateOs(currentOsId, { description: desc, totalPrice: total });
+  if (ok) {
+    toast('OS salva com sucesso!');
+    await loadOs();
+  } else {
+    toast('Erro ao salvar OS.', 'error');
+  }
+};
+
+// ── Gerar PDF ─────────────────────────────────────────────
+document.getElementById('btn-gen-pdf').onclick = async () => {
+  // Salva primeiro
+  const total = recalcTotal();
+  const desc  = document.getElementById('e-desc').value.trim();
+  await updateOs(currentOsId, { description: desc, totalPrice: total });
+
+  const { ok, data } = await generatePdf(currentOsId);
+  if (ok && data?.path) {
+    toast('PDF gerado! Abrindo...');
+    window.open(`/pdfs/${data.path.split('/').pop()}`, '_blank');
+  } else if (ok) {
+    toast('PDF gerado com sucesso!');
+  } else {
+    toast('Erro ao gerar PDF.', 'error');
+  }
+};
+
+// ── Deletar OS ────────────────────────────────────────────
+let pendingDeleteId = null;
+const confirmOverlay = document.getElementById('confirm-overlay');
+
+window.triggerDelete = (id) => {
+  pendingDeleteId = id;
+  document.getElementById('confirm-name').textContent = `#${id}`;
+  confirmOverlay.classList.add('open');
+};
+
+confirmOverlay.addEventListener('click', (e) => { if (e.target === confirmOverlay) closeConfirm(); });
+document.getElementById('confirm-cancel').onclick = closeConfirm;
+document.getElementById('confirm-ok').onclick = async () => {
+  if (!pendingDeleteId) return;
+  const id = pendingDeleteId;
+  closeConfirm();
+  const { ok } = await deleteOs(id);
+  if (ok) { toast('OS removida.'); await loadOs(); }
+  else toast('Erro ao remover OS.', 'error');
+};
+
+function closeConfirm() {
+  pendingDeleteId = null;
+  confirmOverlay.classList.remove('open');
+}
+
+// ── Start ─────────────────────────────────────────────────
+bootstrap();
 </script>
 
 </body>

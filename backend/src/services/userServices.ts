@@ -85,3 +85,14 @@ export const logout = async (token:string) => {
         return hr.internalServerError(error as Error);
     }
 }
+
+export const getUsersService = async () => {
+  try {
+    const data = await ud.findAllUsers();
+    if (data) return hr.ok(data);
+    return hr.noContent();
+  } catch (error) {
+    console.error(error);
+    return hr.internalServerError(error as Error);
+  }
+};

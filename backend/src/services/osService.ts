@@ -166,17 +166,3 @@ export const getOrderLaborService = async (idSo: number) => {
         return hr.internalServerError(error as Error);
     }
 };
-
-export const generatePdfService = async (idSo: number) => {
-    try {
-        const caminho = await gerarOsPdf(idSo);
-        const nomeArquivo = caminho.replace(/\\/g, '/').split('/').pop();
-        const pdfPath = `/pdfs/${nomeArquivo}`;
-        await osd.updatePath(pdfPath, idSo);
-        const data = await osd.findOSById(idSo);
-        return hr.ok(data);
-    } catch (error) {
-        console.error(error);
-        return hr.internalServerError(error as Error);
-    }
-};
