@@ -1,6 +1,12 @@
 // =====================================================
-//  osApi.js — Camada de acesso ao backend para OS,
-//  usuários, serviços e geração de PDF
+//  osApi.js — Endpoints específicos de OS que não
+//  precisam de retry de refresh token:
+//  insertOrderParts/Labor, deleteOrderParts/Labor,
+//  generatePdf e getUsers.
+//
+//  ATENÇÃO: getOs, getOsById, createOs, updateOs,
+//  deleteOs e getLabors foram movidos para api.js
+//  para terem o retry automático de refresh token.
 // =====================================================
 
 const BASE_URL = 'http://localhost:3333';
@@ -17,7 +23,7 @@ async function request(method, path, body = null) {
   if (body) opts.body = JSON.stringify(body);
 
   try {
-    const res  = await fetch(`${BASE_URL}${path}`, opts);
+    const res = await fetch(`${BASE_URL}${path}`, opts);
 
     if (res.status === 401) {
       localStorage.removeItem('token');
@@ -38,59 +44,33 @@ async function request(method, path, body = null) {
   }
 }
 
-// ── Ordens de Serviço ─────────────────────────────────────
-
-/** Lista todas as OS */
-export const getOs       = ()        => request('GET',    '/os');
-
-/** Busca OS por ID */
-export const getOsById   = (id)      => request('GET',    `/os/${id}`);
-
-/** Cria nova OS */
-export const createOs    = (body)    => request('POST',   '/os/post', body);
-
-/** Atualiza OS (descrição, totalPrice, etc) */
-export const updateOs    = (id, body)=> request('PATCH',  `/os/update/${id}`, body);
-
-/** Remove OS */
-export const deleteOs    = (id)      => request('DELETE', `/os/${id}`);
-
 // ── Peças da OS ───────────────────────────────────────────
 
-/** Adiciona peça na OS */
+/** Adiciona peça na OS. POST /os/:id/parts */
 export const insertOrderParts = (idSo, body) =>
   request('POST',   `/os/${idSo}/parts`, body);
 
-/** Remove peça da OS */
+/** Remove peça da OS. DELETE /os/:id/parts/:partId */
 export const deleteOrderParts = (idSo, idPart) =>
   request('DELETE', `/os/${idSo}/parts/${idPart}`);
 
 // ── Serviços da OS ────────────────────────────────────────
 
-/** Adiciona serviço na OS */
+/** Adiciona serviço na OS. POST /os/:id/labor */
 export const insertOrderLabor = (idSo, body) =>
   request('POST',   `/os/${idSo}/labor`, body);
 
-/** Remove serviço da OS */
+/** Remove serviço da OS. DELETE /os/:id/labor/:laborId */
 export const deleteOrderLabor = (idSo, idLabor) =>
   request('DELETE', `/os/${idSo}/labor/${idLabor}`);
 
 // ── PDF ───────────────────────────────────────────────────
 
-/** Gera o PDF da OS — chama o endpoint que ainda precisa ser implementado */
+/** Gera o PDF da OS. POST /os/:id/pdf */
 export const generatePdf = (idSo) =>
   request('POST', `/os/${idSo}/pdf`);
 
 // ── Usuários (mecânicos) ──────────────────────────────────
 
-/**
- * Lista todos os usuários do sistema para popular o select de mecânicos.
- * IMPORTANTE: adicione esta rota no backend:
- *   router.get('/users', authToken, usersController.getUsers);
- */
+/** Lista todos os usuários do sistema. GET /users */
 export const getUsers = () => request('GET', '/users');
-
-// ── Serviços (catálogo de mão de obra) ───────────────────
-
-/** Lista serviços do catálogo */
-export const getLabors = () => request('GET', '/labor');

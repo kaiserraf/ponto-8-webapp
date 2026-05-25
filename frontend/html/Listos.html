@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="icon" href="../img/logo8.png">
   <style>
-    /* ── OS-specific styles ── */
     .os-modal { max-width: 780px; }
 
     .section-title {
@@ -54,8 +53,8 @@
       align-items: end;
     }
 
-    .add-item-row.parts-row   { grid-template-columns: 2fr 80px 120px auto; }
-    .add-item-row.labor-row   { grid-template-columns: 2fr 120px auto; }
+    .add-item-row.parts-row { grid-template-columns: 2fr 80px 120px auto; }
+    .add-item-row.labor-row { grid-template-columns: 2fr 120px auto; }
 
     .add-item-row .form-group { margin: 0; }
     .add-item-row .form-group label { font-size: 10px; }
@@ -86,17 +85,6 @@
       letter-spacing: 1px;
     }
 
-    .status-chip {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .chip-open   { background: rgba(245,197,24,.12); color: var(--yellow); border: 1px solid rgba(245,197,24,.3); }
-    .chip-closed { background: rgba(85,200,85,.12);  color: #55c855;       border: 1px solid rgba(85,200,85,.3); }
-
     .remove-item-btn {
       background: none;
       border: none;
@@ -113,7 +101,6 @@
 
     .form-group select option { background: var(--surface-2); }
 
-    /* save state bar */
     .save-bar {
       display: flex;
       justify-content: flex-end;
@@ -216,9 +203,7 @@
   </main>
 </div>
 
-<!-- ═══════════════════════════════════════════════════
-     MODAL CRIAR OS
-═══════════════════════════════════════════════════ -->
+<!-- MODAL CRIAR OS -->
 <div class="modal-overlay" id="modal-create">
   <div class="modal os-modal">
     <div class="modal__header">
@@ -227,28 +212,24 @@
     </div>
 
     <div class="form-grid">
-      <!-- Cliente -->
       <div class="form-group full">
         <label for="c-client">Cliente</label>
         <select id="c-client" required>
           <option value="">Selecione um cliente...</option>
         </select>
       </div>
-      <!-- Veículo (filtrado pelo cliente) -->
       <div class="form-group full">
         <label for="c-vehicle">Veículo</label>
         <select id="c-vehicle" required>
           <option value="">Selecione primeiro o cliente...</option>
         </select>
       </div>
-      <!-- Mecânico -->
       <div class="form-group full">
         <label for="c-mechanic">Mecânico responsável</label>
         <select id="c-mechanic" required>
           <option value="">Selecione um mecânico...</option>
         </select>
       </div>
-      <!-- Descrição / Laudo -->
       <div class="form-group full">
         <label for="c-desc">Laudo / Observações</label>
         <input id="c-desc" type="text" placeholder="Descreva os serviços e observações..." />
@@ -262,9 +243,7 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════
-     MODAL EDITAR / GERENCIAR OS
-═══════════════════════════════════════════════════ -->
+<!-- MODAL EDITAR / GERENCIAR OS -->
 <div class="modal-overlay" id="modal-edit">
   <div class="modal os-modal">
     <div class="modal__header">
@@ -274,7 +253,6 @@
 
     <div class="modal-scroll">
 
-      <!-- Dados gerais (somente leitura para referência) -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px">
         <div>
           <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-light);margin-bottom:4px">Cliente</div>
@@ -286,23 +264,18 @@
         </div>
       </div>
 
-      <!-- Laudo -->
       <div class="form-group" style="margin-top:14px">
         <label for="e-desc">Laudo / Observações</label>
         <input id="e-desc" type="text" placeholder="Laudo e observações..." />
       </div>
 
-      <!-- ── PEÇAS ── -->
+      <!-- PEÇAS -->
       <div class="section-title">Produtos / Peças</div>
 
       <table class="items-table" id="parts-table">
         <thead>
           <tr>
-            <th>Peça</th>
-            <th>Qtd</th>
-            <th>V. Unit.</th>
-            <th>Total</th>
-            <th></th>
+            <th>Peça</th><th>Qtd</th><th>V. Unit.</th><th>Total</th><th></th>
           </tr>
         </thead>
         <tbody id="parts-tbody">
@@ -310,13 +283,10 @@
         </tbody>
       </table>
 
-      <!-- Adicionar peça -->
       <div class="add-item-row parts-row">
         <div class="form-group">
           <label>Peça</label>
-          <select id="add-part-select">
-            <option value="">Selecione...</option>
-          </select>
+          <select id="add-part-select"><option value="">Selecione...</option></select>
         </div>
         <div class="form-group">
           <label>Qtd</label>
@@ -329,29 +299,22 @@
         <button class="btn btn-ghost btn-sm" id="btn-add-part" style="white-space:nowrap">+ Peça</button>
       </div>
 
-      <!-- ── SERVIÇOS ── -->
+      <!-- SERVIÇOS -->
       <div class="section-title">Serviços / Mão de Obra</div>
 
       <table class="items-table" id="labor-table">
         <thead>
-          <tr>
-            <th>Serviço</th>
-            <th>Valor</th>
-            <th></th>
-          </tr>
+          <tr><th>Serviço</th><th>Valor</th><th></th></tr>
         </thead>
         <tbody id="labor-tbody">
           <tr id="labor-empty-row"><td colspan="3" style="color:var(--gray-light);text-align:center;padding:14px">Nenhum serviço adicionado</td></tr>
         </tbody>
       </table>
 
-      <!-- Adicionar serviço -->
       <div class="add-item-row labor-row">
         <div class="form-group">
           <label>Serviço</label>
-          <select id="add-labor-select">
-            <option value="">Selecione...</option>
-          </select>
+          <select id="add-labor-select"><option value="">Selecione...</option></select>
         </div>
         <div class="form-group">
           <label>Valor (R$)</label>
@@ -360,13 +323,13 @@
         <button class="btn btn-ghost btn-sm" id="btn-add-labor" style="white-space:nowrap">+ Serviço</button>
       </div>
 
-      <!-- ── TOTAL ── -->
+      <!-- TOTAL -->
       <div class="total-box">
         <span class="total-box__label">Valor Total da OS</span>
         <span class="total-box__value" id="os-total">R$ 0,00</span>
       </div>
 
-      <!-- ── SALVAR / GERAR PDF ── -->
+      <!-- SALVAR / PDF -->
       <div class="save-bar">
         <button class="btn btn-ghost" id="cancel-edit">Fechar</button>
         <button class="btn btn-ghost" id="btn-save-os">
@@ -414,33 +377,51 @@
 </div>
 
 <script type="module">
-import { logout }    from '../js/authGuard.js';
+import { logout } from '../js/authGuard.js';
 import { toast, openModal, closeModal, bindModalOverlayClose } from '../js/ui.js';
+
+// FIX: getOs, getOsById, createOs, updateOs, deleteOs e getLabors
+// agora vêm de api.js que tem retry de refresh token automático.
+// Apenas insertOrderParts/Labor, deleteOrderParts/Labor, generatePdf
+// e getUsers continuam no osApi.js (sem estado crítico de token nesses).
 import {
-  getClients, getVehicles, getParts
+  getClients,
+  getVehicles,
+  getParts,
+  getOs,
+  getOsById,
+  createOs,
+  updateOs,
+  deleteOs,
+  getLabors
 } from '../js/api.js';
-import { getOs, getOsById, createOs, updateOs, deleteOs,
-         insertOrderParts, deleteOrderParts,
-         insertOrderLabor, deleteOrderLabor,
-         generatePdf, getUsers, getLabors } from '../js/osApi.js';
+
+import {
+  insertOrderParts,
+  deleteOrderParts,
+  insertOrderLabor,
+  deleteOrderLabor,
+  generatePdf,
+  getUsers
+} from '../js/osApi.js';
 
 document.getElementById('btn-logout').onclick = (e) => { e.preventDefault(); logout(); };
 
 // ── State ──────────────────────────────────────────────────
 let allOs       = [];
-let clientMap   = {};   // id → {name}
+let clientMap   = {};   // id → name
 let vehicleMap  = {};   // id → {model, brand, clientId}
-let partsMap    = {};   // id → {namePart, saleValue}
-let laborMap    = {};   // id → {laborName}
+let partsMap    = {};   // id → {name, saleValue}
+let laborMap    = {};   // id → laborName
 let usersMap    = {};   // id → name
 let allVehicles = [];
 let allParts    = [];
 let allLabors   = [];
 
-// currently editing
-let currentOsId    = null;
-let currentParts   = [];  // [{id, idPart, amount, unitPrice}]
-let currentLabors  = [];  // [{id, idLabor, value}]
+// estado da OS sendo editada
+let currentOsId   = null;
+let currentParts  = [];   // [{id, idPart, amount, unitPrice}]
+let currentLabors = [];   // [{id, idLabor, value}]
 
 const brl = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -450,91 +431,122 @@ async function bootstrap() {
     getClients(), getVehicles(), getParts(), getLabors(), getUsers()
   ]);
 
-  if (cRes.ok && cRes.data)  cRes.data.forEach(c => { clientMap[c.id] = c.name; });
-  if (vRes.ok && vRes.data)  {
+  // Clientes
+  if (cRes.ok && cRes.data) {
+    cRes.data.forEach(c => { clientMap[Number(c.id)] = c.name; });
+  }
+
+  // Veículos — FIX: normaliza todos os campos para Number na hora de montar o mapa
+  if (vRes.ok && vRes.data) {
     allVehicles = vRes.data;
     vRes.data.forEach(v => {
-      const id = v.idVehicle ?? v.id_vehicle;
+      const id = Number(v.idVehicle ?? v.id_vehicle);
       vehicleMap[id] = {
-        model:    v.vehicleModel ?? v.vehicle_model,
-        brand:    v.vehicleBrand ?? v.vehicle_brand,
-        clientId: v.cliendId    ?? v.client_id
+        model:    v.vehicleModel  ?? v.vehicle_model,
+        brand:    v.vehicleBrand  ?? v.vehicle_brand,
+        clientId: Number(v.cliendId ?? v.client_id)
       };
     });
   }
-  if (pRes.ok && pRes.data)  {
+
+  // Peças
+  if (pRes.ok && pRes.data) {
     allParts = pRes.data;
     pRes.data.forEach(p => {
-      const id = p.idPart ?? p.id_part;
-      partsMap[id] = { name: p.namePart ?? p.name_part, saleValue: p.saleValue ?? p.sale_value };
+      const id = Number(p.idPart ?? p.id_part);
+      partsMap[id] = {
+        name:      p.namePart   ?? p.name_part,
+        saleValue: p.saleValue  ?? p.sale_value
+      };
     });
   }
-  if (lRes.ok && lRes.data)  {
+
+  // Serviços
+  if (lRes.ok && lRes.data) {
     allLabors = lRes.data;
-    lRes.data.forEach(l => { laborMap[l.idLabor] = l.laborName; });
+    lRes.data.forEach(l => {
+      laborMap[Number(l.idLabor ?? l.id_labor)] = l.laborName ?? l.labor_name;
+    });
   }
-  if (uRes.ok && uRes.data)  {
-    uRes.data.forEach(u => { usersMap[u.id] = u.name; });
+
+  // Usuários / Mecânicos
+  if (uRes.ok && uRes.data) {
+    uRes.data.forEach(u => { usersMap[Number(u.id)] = u.name; });
   }
 
   populateCreateSelects();
   await loadOs();
 }
 
-// ── Populate selects (modal criar) ────────────────────────
+// ── Selects do modal Criar ─────────────────────────────────
 function populateCreateSelects() {
   // Clientes
   const cSel = document.getElementById('c-client');
   cSel.innerHTML = '<option value="">Selecione um cliente...</option>' +
-    Object.entries(clientMap).map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
+    Object.entries(clientMap)
+      .map(([id, name]) => `<option value="${id}">${name}</option>`)
+      .join('');
 
   // Mecânicos
   const mSel = document.getElementById('c-mechanic');
   mSel.innerHTML = '<option value="">Selecione um mecânico...</option>' +
-    Object.entries(usersMap).map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
+    Object.entries(usersMap)
+      .map(([id, name]) => `<option value="${id}">${name}</option>`)
+      .join('');
 
   // Peças (modal editar)
   const pSel = document.getElementById('add-part-select');
   pSel.innerHTML = '<option value="">Selecione...</option>' +
     allParts.map(p => {
-      const id  = p.idPart ?? p.id_part;
-      const nm  = p.namePart ?? p.name_part;
+      const id = Number(p.idPart ?? p.id_part);
+      const nm = p.namePart ?? p.name_part;
       return `<option value="${id}">${nm}</option>`;
     }).join('');
 
   // Serviços (modal editar)
   const lSel = document.getElementById('add-labor-select');
   lSel.innerHTML = '<option value="">Selecione...</option>' +
-    allLabors.map(l => `<option value="${l.idLabor}">${l.laborName}</option>`).join('');
+    allLabors.map(l => {
+      const id = Number(l.idLabor ?? l.id_labor);
+      const nm = l.laborName ?? l.labor_name;
+      return `<option value="${id}">${nm}</option>`;
+    }).join('');
 }
 
-// Filtrar veículos pelo cliente selecionado (modal criar)
+// FIX: listener do cliente — filtra veículos usando Number() em ambos os lados
 document.getElementById('c-client').addEventListener('change', function () {
-  const clientId = parseInt(this.value);
+  const clientId = Number(this.value);
   const vSel = document.getElementById('c-vehicle');
+
+  // Sem cliente selecionado — reseta o select de veículos
+  if (!clientId) {
+    vSel.innerHTML = '<option value="">Selecione primeiro o cliente...</option>';
+    return;
+  }
+
+  // Filtra veículos do cliente selecionado
   const filtered = allVehicles.filter(v => {
-    const cid = parseInt(v.cliendId ?? v.client_id);
+    const cid = Number(v.cliendId ?? v.client_id);
     return cid === clientId;
   });
 
-  if (!clientId || !filtered.length) {
+  if (!filtered.length) {
     vSel.innerHTML = '<option value="">Nenhum veículo para este cliente</option>';
     return;
   }
 
   vSel.innerHTML = '<option value="">Selecione um veículo...</option>' +
     filtered.map(v => {
-      const id    = v.idVehicle ?? v.id_vehicle;
+      const id    = Number(v.idVehicle ?? v.id_vehicle);
       const brand = v.vehicleBrand ?? v.vehicle_brand;
       const model = v.vehicleModel ?? v.vehicle_model;
-      const plate = v.plate;
-      return `<option value="${id}">${brand} ${model} — ${plate}</option>`;
+      return `<option value="${id}">${brand} ${model} — ${v.plate}</option>`;
     }).join('');
 });
 
-// Preencher preço sugerido ao selecionar peça
+// Preenche preço sugerido ao selecionar peça
 document.getElementById('add-part-select').addEventListener('change', function () {
-  const id = parseInt(this.value);
+  const id = Number(this.value);
   if (id && partsMap[id]) {
     document.getElementById('add-part-price').value = partsMap[id].saleValue;
   }
@@ -549,10 +561,10 @@ async function loadOs() {
     wrap.innerHTML = '<div class="empty-state"><h3>Erro ao carregar</h3></div>';
     return;
   }
-  allOs = data;
+  allOs = Array.isArray(data) ? data : [];
   document.getElementById('meta-count').textContent =
-    `${data.length} ordem${data.length !== 1 ? 'ns' : ''} de serviço`;
-  renderTable(data);
+    `${allOs.length} ordem${allOs.length !== 1 ? 'ns' : ''} de serviço`;
+  renderTable(allOs);
 }
 
 function renderTable(list) {
@@ -562,10 +574,10 @@ function renderTable(list) {
     return;
   }
   const rows = list.map(os => {
-    const id        = os.idSo     ?? os.id_so ?? os.id;
-    const clientId  = os.idClient ?? os.id_client;
-    const vehicleId = os.idVehicle ?? os.id_vehicle;
-    const mechId    = os.mechanic;
+    const id        = Number(os.idSo     ?? os.id_so ?? os.id);
+    const clientId  = Number(os.idClient ?? os.id_client);
+    const vehicleId = Number(os.idVehicle ?? os.id_vehicle);
+    const mechId    = Number(os.mechanic);
     const total     = parseFloat(os.totalPrice ?? os.total_price ?? 0);
     const date      = new Date(os.createdAt ?? os.created_at).toLocaleDateString('pt-BR');
 
@@ -605,10 +617,12 @@ function renderTable(list) {
 document.getElementById('search-input').addEventListener('input', (e) => {
   const q = e.target.value.toLowerCase();
   renderTable(allOs.filter(os => {
-    const cid = os.idClient ?? os.id_client;
-    const vid = os.idVehicle ?? os.id_vehicle;
+    const cid = Number(os.idClient ?? os.id_client);
+    const vid = Number(os.idVehicle ?? os.id_vehicle);
     const cn  = (clientMap[cid]  ?? '').toLowerCase();
-    const vn  = vehicleMap[vid] ? `${vehicleMap[vid].brand} ${vehicleMap[vid].model}`.toLowerCase() : '';
+    const vn  = vehicleMap[vid]
+      ? `${vehicleMap[vid].brand} ${vehicleMap[vid].model}`.toLowerCase()
+      : '';
     return cn.includes(q) || vn.includes(q);
   }));
 });
@@ -619,17 +633,17 @@ document.getElementById('close-create').onclick  = () => closeModal('modal-creat
 document.getElementById('cancel-create').onclick = () => closeModal('modal-create');
 
 document.getElementById('btn-new').onclick = () => {
-  document.getElementById('c-client').value   = '';
+  document.getElementById('c-client').value      = '';
   document.getElementById('c-vehicle').innerHTML = '<option value="">Selecione primeiro o cliente...</option>';
-  document.getElementById('c-mechanic').value = '';
-  document.getElementById('c-desc').value     = '';
+  document.getElementById('c-mechanic').value    = '';
+  document.getElementById('c-desc').value        = '';
   openModal('modal-create');
 };
 
 document.getElementById('btn-create-os').onclick = async () => {
-  const clientId  = parseInt(document.getElementById('c-client').value);
-  const vehicleId = parseInt(document.getElementById('c-vehicle').value);
-  const mechanic  = parseInt(document.getElementById('c-mechanic').value);
+  const clientId  = Number(document.getElementById('c-client').value);
+  const vehicleId = Number(document.getElementById('c-vehicle').value);
+  const mechanic  = Number(document.getElementById('c-mechanic').value);
   const desc      = document.getElementById('c-desc').value.trim();
 
   if (!clientId || !vehicleId || !mechanic) {
@@ -638,12 +652,12 @@ document.getElementById('btn-create-os').onclick = async () => {
   }
 
   const body = {
-    idClient:   clientId,
-    idVehicle:  vehicleId,
-    mechanic:   mechanic,
+    idClient:    clientId,
+    idVehicle:   vehicleId,
+    mechanic:    mechanic,
     description: desc || '',
-    totalPrice: 0,
-    createdAt:  new Date().toISOString()
+    totalPrice:  0,
+    createdAt:   new Date().toISOString()
   };
 
   const { ok, data } = await createOs(body);
@@ -651,8 +665,7 @@ document.getElementById('btn-create-os').onclick = async () => {
     toast('OS criada com sucesso!');
     closeModal('modal-create');
     await loadOs();
-    // Abre o editor da OS recém-criada
-    const newId = data.idSo ?? data.id_so ?? data.id;
+    const newId = Number(data.idSo ?? data.id_so ?? data.id);
     if (newId) editOs(newId);
   } else {
     toast('Erro ao criar OS.', 'error');
@@ -669,25 +682,19 @@ window.editOs = async (id) => {
   currentParts  = [];
   currentLabors = [];
 
-  // Busca detalhes da OS
   const { data: os, ok } = await getOsById(id);
   if (!ok || !os) { toast('Erro ao carregar OS.', 'error'); return; }
 
-  const clientId  = os.idClient  ?? os.id_client;
-  const vehicleId = os.idVehicle ?? os.id_vehicle;
+  const clientId  = Number(os.idClient  ?? os.id_client);
+  const vehicleId = Number(os.idVehicle ?? os.id_vehicle);
   const vInfo     = vehicleMap[vehicleId];
 
-  document.getElementById('edit-os-id').textContent     = `#${id}`;
+  document.getElementById('edit-os-id').textContent       = `#${id}`;
   document.getElementById('edit-client-name').textContent  = clientMap[clientId]  ?? `#${clientId}`;
   document.getElementById('edit-vehicle-name').textContent = vInfo
     ? `${vInfo.brand} ${vInfo.model}` : `#${vehicleId}`;
   document.getElementById('e-desc').value = os.description ?? '';
 
-  // Carrega peças e serviços da OS
-  // Nota: o backend não retorna os itens junto com a OS — precisamos buscá-los
-  // via endpoints separados. Como não há GET /os/:id/parts no router atual,
-  // usamos o que temos: a OS já tem total, e os itens são gerenciados pelo usuário.
-  // Ao abrir o modal os itens partem do zero (o total já está salvo na OS).
   renderPartsTable();
   renderLaborTable();
   recalcTotal();
@@ -697,12 +704,12 @@ window.editOs = async (id) => {
 
 // ── Peças ─────────────────────────────────────────────────
 document.getElementById('btn-add-part').onclick = async () => {
-  const partId   = parseInt(document.getElementById('add-part-select').value);
-  const qty      = parseInt(document.getElementById('add-part-qty').value) || 1;
-  const price    = parseFloat(document.getElementById('add-part-price').value);
+  const partId = Number(document.getElementById('add-part-select').value);
+  const qty    = parseInt(document.getElementById('add-part-qty').value)    || 1;
+  const price  = parseFloat(document.getElementById('add-part-price').value);
 
-  if (!partId)           { toast('Selecione uma peça.', 'error'); return; }
-  if (!price || price<=0){ toast('Informe o valor unitário.', 'error'); return; }
+  if (!partId)            { toast('Selecione uma peça.', 'error'); return; }
+  if (!price || price<=0) { toast('Informe o valor unitário.', 'error'); return; }
 
   const body = { idSo: currentOsId, idPart: partId, amount: qty, unitPrice: price };
   const { ok, data } = await insertOrderParts(currentOsId, body);
@@ -712,7 +719,6 @@ document.getElementById('btn-add-part').onclick = async () => {
   renderPartsTable();
   recalcTotal();
 
-  // Limpar campos
   document.getElementById('add-part-select').value = '';
   document.getElementById('add-part-qty').value    = '1';
   document.getElementById('add-part-price').value  = '';
@@ -732,7 +738,7 @@ window.removePart = removePart;
 function renderPartsTable() {
   const tbody = document.getElementById('parts-tbody');
   if (!currentParts.length) {
-    tbody.innerHTML = '<tr id="parts-empty-row"><td colspan="5" style="color:var(--gray-light);text-align:center;padding:14px">Nenhuma peça adicionada</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--gray-light);text-align:center;padding:14px">Nenhuma peça adicionada</td></tr>';
     return;
   }
   tbody.innerHTML = currentParts.map((p, i) => {
@@ -750,11 +756,11 @@ function renderPartsTable() {
 
 // ── Serviços ──────────────────────────────────────────────
 document.getElementById('btn-add-labor').onclick = async () => {
-  const laborId = parseInt(document.getElementById('add-labor-select').value);
+  const laborId = Number(document.getElementById('add-labor-select').value);
   const price   = parseFloat(document.getElementById('add-labor-price').value);
 
-  if (!laborId)          { toast('Selecione um serviço.', 'error'); return; }
-  if (!price || price<=0){ toast('Informe o valor do serviço.', 'error'); return; }
+  if (!laborId)           { toast('Selecione um serviço.', 'error'); return; }
+  if (!price || price<=0) { toast('Informe o valor do serviço.', 'error'); return; }
 
   const body = { idSo: currentOsId, idLabor: laborId, value: price };
   const { ok, data } = await insertOrderLabor(currentOsId, body);
@@ -782,7 +788,7 @@ window.removeLabor = removeLabor;
 function renderLaborTable() {
   const tbody = document.getElementById('labor-tbody');
   if (!currentLabors.length) {
-    tbody.innerHTML = '<tr id="labor-empty-row"><td colspan="3" style="color:var(--gray-light);text-align:center;padding:14px">Nenhum serviço adicionado</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="color:var(--gray-light);text-align:center;padding:14px">Nenhum serviço adicionado</td></tr>';
     return;
   }
   tbody.innerHTML = currentLabors.map((l, i) => {
@@ -797,7 +803,7 @@ function renderLaborTable() {
 
 // ── Total ─────────────────────────────────────────────────
 function recalcTotal() {
-  const totalParts  = currentParts.reduce((acc, p) => acc + (p.amount * p.unitPrice), 0);
+  const totalParts  = currentParts.reduce((acc, p)  => acc + (p.amount * p.unitPrice), 0);
   const totalLabors = currentLabors.reduce((acc, l) => acc + l.value, 0);
   const total = totalParts + totalLabors;
   document.getElementById('os-total').textContent = brl(total);
@@ -808,19 +814,13 @@ function recalcTotal() {
 document.getElementById('btn-save-os').onclick = async () => {
   const total = recalcTotal();
   const desc  = document.getElementById('e-desc').value.trim();
-
   const { ok } = await updateOs(currentOsId, { description: desc, totalPrice: total });
-  if (ok) {
-    toast('OS salva com sucesso!');
-    await loadOs();
-  } else {
-    toast('Erro ao salvar OS.', 'error');
-  }
+  if (ok) { toast('OS salva com sucesso!'); await loadOs(); }
+  else    { toast('Erro ao salvar OS.', 'error'); }
 };
 
 // ── Gerar PDF ─────────────────────────────────────────────
 document.getElementById('btn-gen-pdf').onclick = async () => {
-  // Salva primeiro
   const total = recalcTotal();
   const desc  = document.getElementById('e-desc').value.trim();
   await updateOs(currentOsId, { description: desc, totalPrice: total });
@@ -854,7 +854,7 @@ document.getElementById('confirm-ok').onclick = async () => {
   closeConfirm();
   const { ok } = await deleteOs(id);
   if (ok) { toast('OS removida.'); await loadOs(); }
-  else toast('Erro ao remover OS.', 'error');
+  else    { toast('Erro ao remover OS.', 'error'); }
 };
 
 function closeConfirm() {
