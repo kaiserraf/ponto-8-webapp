@@ -129,7 +129,7 @@
         </div>
         <div class="form-group full">
           <label for="c-client">Cliente (proprietário)</label>
-          <select id="c-client" name="cliendId" required>
+          <select id="c-client" name="clientId" required>
             <option value="">Selecione um cliente...</option>
           </select>
         </div>
@@ -174,7 +174,7 @@
         </div>
         <div class="form-group full">
           <label for="e-client">Cliente (proprietário)</label>
-          <select id="e-client" name="cliendId">
+          <select id="e-client" name="clientId">
             <option value="">Selecione um cliente...</option>
           </select>
         </div>
@@ -310,7 +310,7 @@
       const plate    = v.plate;
       const chassi   = v.chassi;
       // FIX: converte para Number antes de buscar no mapa
-      const clientId   = Number(v.client_id ?? v.cliendId);
+      const clientId   = Number(v.client_id ?? v.clientId);
       const clientName = clientMap[clientId] ?? `#${clientId}`;
 
       return `
@@ -345,7 +345,7 @@
       year:         parseInt(fd.get('year')),
       plate:        fd.get('plate'),
       chassi:       fd.get('chassi'),
-      cliendId:     parseInt(fd.get('cliendId'))
+      clientId:     parseInt(fd.get('clientId'))
     };
     const { ok } = await createVehicle(body);
     if (ok) { toast('Veículo cadastrado!'); closeModal('modal-create'); await loadVehicles(); }
@@ -357,9 +357,9 @@
     const id = parseInt(document.getElementById('e-id').value);
     const fd   = new FormData(e.target);
     const body = {};
-    ['vehicleModel','vehicleBrand','year','plate','chassi','cliendId'].forEach(f => {
+    ['vehicleModel','vehicleBrand','year','plate','chassi','clientId'].forEach(f => {
       const val = fd.get(f);
-      if (val !== '') body[f] = (f === 'year' || f === 'cliendId') ? parseInt(val) : val;
+      if (val !== '') body[f] = (f === 'year' || f === 'clientId') ? parseInt(val) : val;
     });
     const { ok } = await updateVehicle(id, body);
     if (ok) { toast('Veículo atualizado!'); closeModal('modal-edit'); await loadVehicles(); }
@@ -369,7 +369,7 @@
   window.editVehicle = (id) => {
     const v = allVehicles.find(x => (x.id_vehicle ?? x.idVehicle) === id);
     if (!v) return;
-    const clientId = Number(v.client_id ?? v.cliendId);
+    const clientId = Number(v.client_id ?? v.clientId);
     document.getElementById('e-id').value     = id;
     document.getElementById('e-model').value  = v.vehicle_model ?? v.vehicleModel ?? '';
     document.getElementById('e-brand').value  = v.vehicle_brand ?? v.vehicleBrand ?? '';

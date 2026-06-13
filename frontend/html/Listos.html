@@ -444,7 +444,7 @@ async function bootstrap() {
       vehicleMap[id] = {
         model:    v.vehicleModel  ?? v.vehicle_model,
         brand:    v.vehicleBrand  ?? v.vehicle_brand,
-        clientId: Number(v.cliendId ?? v.client_id)
+        clientId: Number(v.clientId ?? v.client_id)
       };
     });
   }
@@ -526,7 +526,7 @@ document.getElementById('c-client').addEventListener('change', function () {
 
   // Filtra veículos do cliente selecionado
   const filtered = allVehicles.filter(v => {
-    const cid = Number(v.cliendId ?? v.client_id);
+    const cid = Number(v.clientId ?? v.client_id);
     return cid === clientId;
   });
 

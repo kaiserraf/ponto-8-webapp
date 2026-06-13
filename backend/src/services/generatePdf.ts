@@ -188,10 +188,10 @@ function gerarCabecalho(
     osId: number,       // FIX: parâmetro renomeado para osId
     abertura: Date
 ): number {
-    const caminhoLogo = path.join(__dirname, '../../../frontend/img/img1.png');
+    const caminhoLogo = path.join(__dirname, '../../../frontend/img/logo.png');
 
     if (fs.existsSync(caminhoLogo)) {
-        doc.image(caminhoLogo, 40, y, { height: 40 });
+        doc.image(caminhoLogo, 40, y, { height: 80 });
     }
 
     doc
