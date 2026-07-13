@@ -1,3 +1,5 @@
+// arquivo de configuração de conexão com o banco de dados
+
 import { Pool } from 'pg';
 
 const pool = new Pool({
