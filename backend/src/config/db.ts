@@ -1,10 +1,8 @@
-// arquivo de configuração de conexão com o banco de dados
-
 import { Pool } from 'pg';
 
 const pool = new Pool({
     host: process.env.DB_HOST || '',
-    port: parseInt(process.env.DB_PORT || '30267'),
+    port: parseInt(process.env.DB_PORT || '5432'),
     database: process.env.DB_NAME || 'Ponto8WebApp',
     user: process.env.DB_USER || 'postgres',
     password:process.env.DB_PASSWORD || '',

@@ -1,50 +1,73 @@
 import {Request, Response} from 'express';
 import * as ls from '../services/laborService';
-import { badRequest } from '../utils/http';
+import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
-// obter todas as peças
 export const getLabors = async (req:Request, res:Response) => {
-    const httpResponse = await ls.getLaborsService(); // chama metodo da service
-    res.status(httpResponse.status).json(httpResponse.body); // retorna status HTTP e JSON
+    try {
+        const response = await ls.getLaborsService();
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
+    }
+    
 };
 
-// obter peça a partir de Id
 export const getLaborById = async (req:Request, res:Response) => {
-    const id = parseInt(req.params.id as string); // pega id na url da rota
-    const httpResponse = await ls.getLaborByIdService(id); // chama metodo da service passando id
-    res.status(httpResponse.status).json(httpResponse.body); // retorna status HTTP e JSON
+    try {
+        const id = parseInt(req.params.id as string,);
+        if(isNaN(id)) res.status(StatusCodes.BAD_REQUEST).json({ message: "ID invalido" });
+        const response = await ls.getLaborByIdService(id);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
+    }
+    
 };
 
-// inserir nova peça
 export const postLabor = async (req:Request, res:Response) => {
-    const bodyValue = req.body; // pega as informações passadas no corpo da requisição
-    const httpResponse = await ls.postLaborService(bodyValue); // chama metodo da service passando body
-    if(httpResponse) res.status(httpResponse.status).json(httpResponse.body); // se conseguir inserir retorna sucesso
-    else{
-        const response = await badRequest(); // cria const para badRequest
-        res.status(response.status).json(response.body); // retorna badRequest
+    try {
+        const bodyValue = req.body;
+        const response = await ls.postLaborService(bodyValue);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
     }
 };
 
-// editar peça
 export const updateLabor = async (req:Request, res:Response) => {
-    const id = parseInt(req.params.id as string);
-    const newName = req.body;
-    const httpResponse = await ls.updateLaborService(id, newName);
-    if(httpResponse) res.status(httpResponse.status).json(httpResponse.body);
-    else{
-        const response = await badRequest();
-        res.status(response.status).json(response.body);
+    try {
+        const id = parseInt(req.params.id as string);
+        if(isNaN(id)) res.status(StatusCodes.BAD_REQUEST).json({ message: "ID invalido" });
+        const newName = req.body;
+        const response = await ls.updateLaborService(id, newName);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
     }
 };
 
-// excluir peça
 export const deleteLabor = async (req:Request, res:Response) => {
-    const id = parseInt(req.params.id as string);
-    const httpResponse =  await ls.deleteLaborService(id);
-    if(httpResponse) res.status(httpResponse.status).json(httpResponse.body);
-    else{
-        const response = await badRequest();
-        res.status(await response.status).json(response.body);
+    try {
+        const id = parseInt(req.params.id as string);
+        if(isNaN(id)) res.status(StatusCodes.BAD_REQUEST).json({ message: "ID invalido" });
+        const response =  await ls.deleteLaborService(id);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
     }
 };

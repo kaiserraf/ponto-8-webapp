@@ -1,115 +1,188 @@
 import {Request, Response} from 'express';
 import * as oss from '../services/osService';
-import { badRequest } from '../utils/http';
 import { OSModel } from '../Models/OSModel';
 import { gerarOsPdf } from '../services/generatePdf';
 import * as path from 'path';
+import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
 
 export const getOs = async (req:Request, res:Response) => {
-    const httpResponse = await oss.listOsService();
-    res.status(httpResponse.status).json(httpResponse.body);
+    try {
+        const response = await oss.listOsService();
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
+    }
 };
 
 export const getOsById = async (req:Request, res:Response) => {
-    const id = parseInt(req.params.id as string);
-    const httpResponse = await oss.getOsByIdService(id);
-    res.status(httpResponse.status).json(httpResponse.body);
+    try {
+        const id = parseInt(req.params.id as string);
+        if(isNaN(id)) res.status(StatusCodes.BAD_REQUEST).json({message: "ID invalido"});
+        const response = await oss.getOsByIdService(id);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
+    }
 };
 
-export const postOs = async (req:Request, res:Response) => {
-    const bodyValue = req.body;
-    const httpResponse = await oss.insertOsService(bodyValue);
-
-    if(httpResponse) res.status(httpResponse.status).json(httpResponse.body);
-    else{
-        const response = await badRequest();
-        res.status(response.status).json(response.body);   
+export const postOs = async (req:Request, res:Response) => {  
+    try {
+        const bodyValue = req.body;
+        const response = await oss.insertOsService(bodyValue);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
     }
 }
 
 export const updateOs = async (req:Request, res:Response) => {
-    const id = parseInt(req.params.id as string);
-    const bodyValue:OSModel = req.body; 
-    const httpResponse = oss.updateOsService(id,bodyValue);
-    res.status((await httpResponse).status).json((await httpResponse).body);
+    try {
+        const id = parseInt(req.params.id as string);
+        if(isNaN(id)) res.status(StatusCodes.BAD_REQUEST).json({message: "ID invalido"});
+        const bodyValue:OSModel = req.body; 
+        const response = await oss.updateOsService(id,bodyValue);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
+    }
 };
 
 export const deleteOs = async (req:Request, res:Response) => {
-    const id = parseInt(req.params.id as string);
-    const httpResponse = await oss.deleteOsService(id);
-    res.status(httpResponse.status).json(httpResponse.body);
+    try {
+        const id = parseInt(req.params.id as string);
+        const response = await oss.deleteOsService(id);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
+    }
 };
 
 export const updatePath = async (req:Request, res:Response) => {
-    const id = parseInt(req.params.id as string);
-    const bodyValue:OSModel = req.body;
-    const httpResponse = await oss.updatePathService(id,bodyValue);
-    res.status(httpResponse.status).json(httpResponse.body);
+    try {
+        const id = parseInt(req.params.id as string);
+        const bodyValue:OSModel = req.body;
+        const response = await oss.updatePathService(id,bodyValue);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
+    }
 };
 
 export const insertOrderParts = async (req:Request, res:Response) => {
-    const bodyValue = req.body;
-    const httpResponse = await oss.insertOrderPartsService(bodyValue);
-
-    if(httpResponse) res.status(httpResponse.status).json(httpResponse.body);
-    else{
-        const response = await badRequest();
-        res.status(response.status).json(response.body);
+    
+    try {
+        const bodyValue = req.body;
+        const response = await oss.insertOrderPartsService(bodyValue);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
     }
 };
 
 export const deleteOrderParts = async (req:Request, res:Response) => {
-    const idSo = parseInt(req.params.id as string);
-    const idPart = parseInt(req.params.partId as string);
-    const httpResponse = await oss.deleteOrderPartsService(idSo, idPart);
-
-    res.status(httpResponse.status).json(httpResponse.body);
+    
+    try {
+        const idSo = parseInt(req.params.id as string);
+        const idPart = parseInt(req.params.partId as string);
+        const response = await oss.deleteOrderPartsService(idSo, idPart);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
+    }
 }
 
 export const insertOrderLabor = async (req:Request, res:Response) => {
-    const bodyValue = req.body;
-    const httpResponse = await oss.insertOrderLaborService(bodyValue);
-
-    if(httpResponse) res.status(httpResponse.status).json(httpResponse.body);
-    else{
-        const response = await badRequest();
-        res.status(response.status).json(response.body);
+    try {
+        const bodyValue = req.body;
+        const response = await oss.insertOrderLaborService(bodyValue);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
     }
 };
 
 export const deleteOrderLabor = async (req:Request, res:Response) => {
-    const idSo = parseInt(req.params.id as string);
-    const idLabor = parseInt(req.params.laborId as string);
-    const httpResponse = await oss.deleteOrderLaborService(idSo, idLabor);
-
-    res.status(httpResponse.status).json(httpResponse.body);
+    try {
+        const idSo = parseInt(req.params.id as string);
+        const idLabor = parseInt(req.params.laborId as string);
+        const response = await oss.deleteOrderLaborService(idSo, idLabor);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
+    }
 };
 
 export const getOrderParts = async (req: Request, res: Response) => {
-    const idSo = parseInt(req.params.id as string);
-    const httpResponse = await oss.getOrderPartsService(idSo);
-    res.status(httpResponse.status).json(httpResponse.body);
+    
+    try {
+        const idSo = parseInt(req.params.id as string);
+        const response = await oss.getOrderPartsService(idSo);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
+    }
 };
 
 export const getOrderLabor = async (req: Request, res: Response) => {
-    const idSo = parseInt(req.params.id as string);
-    const httpResponse = await oss.getOrderLaborService(idSo);
-    res.status(httpResponse.status).json(httpResponse.body);
+    
+    try {
+        const idSo = parseInt(req.params.id as string);
+        const response = await oss.getOrderLaborService(idSo);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
+    }
 };
 
 export const generatePdf = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id as string);
   try {
+    const id = parseInt(req.params.id as string);
+    if(isNaN(id)) res.status(StatusCodes.BAD_REQUEST).json({message: "ID invalido"});
     const caminhoArquivo = await gerarOsPdf(id);
-    const nomeArquivo    = path.basename(caminhoArquivo);
- 
-    // Salva o caminho relativo na OS
-    await oss.updatePathService(id, { pdfPath: nomeArquivo } as any);
- 
-    res.status(200).json({ path: nomeArquivo });
+    const nomeArquivo = path.basename(caminhoArquivo);
+    const response = await oss.updatePathService(id, { pdfPath: nomeArquivo } as any);
+    if(!response) res.status(StatusCodes.NO_CONTENT).send();
+    res.status(StatusCodes.OK).json({ path: nomeArquivo });
   } catch (err) {
-    console.error('Erro ao gerar PDF:', err);
-    res.status(500).json({ message: 'Erro ao gerar PDF', error: String(err) });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        });
   }
 };

@@ -1,12 +1,12 @@
---  Schema PostgreSQL — Sistema de Oficina
+--  Schema PostgreSQL Sistema de Oficina
 
 -- Tabela de clientes
 CREATE TABLE clients (
     id        SERIAL PRIMARY KEY,
     name      VARCHAR(100)  NOT NULL,
-    address   VARCHAR(200)  NOT NULL,
-    phone     BIGINT        NOT NULL,
-    cpf       VARCHAR(14)   NOT NULL UNIQUE,
+    address   VARCHAR(255)  NOT NULL, -- criptografar
+    phone     VARCHAR(255)  NOT NULL, -- criptografar
+    cpf       VARCHAR(255)  NOT NULL UNIQUE, -- criptografar
     email     VARCHAR(100)  NOT NULL UNIQUE
 );
 
@@ -16,8 +16,8 @@ CREATE TABLE vehicles (
     vehicle_model VARCHAR(60)  NOT NULL,
     vehicle_brand VARCHAR(60)  NOT NULL,
     year          INT          NOT NULL,
-    chassi        VARCHAR(17)  NOT NULL UNIQUE,
-    plate         VARCHAR(10)  NOT NULL UNIQUE,
+    chassi        VARCHAR(255) NOT NULL UNIQUE, -- criptografar
+    plate         VARCHAR(255) NOT NULL UNIQUE, -- criptografar
     client_id     INT          NOT NULL,
     CONSTRAINT fk_client FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
 );
@@ -54,7 +54,7 @@ CREATE TABLE service_orders (
     id_so        SERIAL PRIMARY KEY,
     id_client    INT            NOT NULL REFERENCES clients(id),
     id_vehicle   INT            NOT NULL REFERENCES vehicles(id_vehicle),
-    mechanic     INT   NOT NULL REFERENCES users(id),
+    mechanic     INT            NOT NULL REFERENCES users(id),
     description  TEXT,
     total_price  NUMERIC(10,2)  NOT NULL DEFAULT 0,
     pdf_path     VARCHAR(300),
@@ -65,7 +65,7 @@ CREATE TABLE order_parts (
     id           SERIAL PRIMARY KEY,
     id_so        INT            NOT NULL REFERENCES service_orders(id_so) ON DELETE CASCADE,
     id_part      INT            NOT NULL REFERENCES parts(id_part),
-    amount       INT            NOT NULL,
+    amount       NUMERIC(10,2)  NOT NULL,
     unit_price   NUMERIC(10,2)  NOT NULL
 );
 
@@ -80,6 +80,6 @@ CREATE TABLE order_labor (
     id          SERIAL PRIMARY KEY,
     id_so       INT            NOT NULL REFERENCES service_orders(id_so) ON DELETE CASCADE,
     id_labor    INT            NOT NULL REFERENCES labors(id_labor),
-    amount      INT            NOT NULL DEFAULT 1,
+    amount      NUMERIC(10,2)  NOT NULL DEFAULT 1,
     unit_price  NUMERIC(10,2)  NOT NULL
 );

@@ -1,49 +1,69 @@
+import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import * as us from '../services/userServices';
-import { badRequest } from '../utils/http';
 import {Request, Response} from 'express';
 
 export const register = async (req:Request, res:Response) => {
-    const bodyValue = req.body;
-    const httpResponse = await us.registerService(bodyValue);
-
-    if(httpResponse) res.status(httpResponse.status).json(httpResponse.body);
-    else{
-        const response = await badRequest();
-        res.status(response.status).json(response.body);
-    }    
-}
-
-export const login = async (req:Request, res:Response) => {
-    const {email, password} = req.body;
-    const httpResponse = await us.loginService(email, password);
-    res.status(httpResponse.status).json(httpResponse.body);
-}
-
-export const refresh = async (req:Request, res:Response) => {
-    const { refreshToken } = req.body;
-
-    if(!refreshToken){
-        res.status(400).json({message: 'Refresh token não fornecido'});
-        return;
+    try {
+        const bodyValue = req.body;
+        const response = await us.registerService(bodyValue);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        }); 
     }
+}
 
-    const httpResponse = await us.refreshService(refreshToken);
-    res.status(httpResponse.status).json(httpResponse.body);
+export const login = async (req:Request, res:Response) => {    
+    try {
+        const {email, password} = req.body;
+        const response = await us.loginService(email, password);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        }); 
+    }
+}
+
+export const refresh = async (req:Request, res:Response) => {    
+    try {
+        const { refreshToken } = req.body;
+        if(!refreshToken) res.status(StatusCodes.BAD_REQUEST).json({message: 'Refresh token não fornecido'});
+        const response = await us.refreshService(refreshToken);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        }); 
+    }
 }
 
 export const logout = async (req:Request, res:Response) => {
-    const { refreshToken } = req.body;
-
-    if(!refreshToken){
-        res.status(400).json({message: 'Refresh token não fornecido'});
-        return;
+    try {
+        const { refreshToken } = req.body;
+        if(!refreshToken) res.status(400).json({message: 'Refresh token não fornecido'});
+        const response = await us.logout(refreshToken);
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        }); 
     }
-
-    const httpResponse = await us.logout(refreshToken);
-    res.status(httpResponse.status).json(httpResponse.body);
 }
 
 export const getUsers = async (req: Request, res: Response) => {
-  const httpResponse = await us.getUsersService();
-  res.status(httpResponse.status).json(httpResponse.body);
+    try {
+        const response = await us.getUsersService();
+        if(!response) res.status(StatusCodes.NO_CONTENT).send();
+        res.status(StatusCodes.OK).json(response);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: ReasonPhrases.INTERNAL_SERVER_ERROR
+        }); 
+    }
 };

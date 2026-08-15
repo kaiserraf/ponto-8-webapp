@@ -11,17 +11,17 @@ import { authToken } from './middlewares/auth';
 const router = Router();
 
 // users route
-router.post('/register', authToken, userController.register);
+router.post('/register', userController.register);
 router.post('/login', userController.login);
 router.post('/refresh', userController.refresh);
 router.post('/logout', userController.logout);
 router.get('/users', authToken, userController.getUsers);
 
 // client route
-router.get('/clients', authToken, clientController.getClient); // lista de clientes
-router.get('/clients/:id', authToken, clientController.getClientById); // filtra clientes pelo nome -> ainda não funciona
-router.post('/clients/post', authToken, clientController.postClient); // cadastro de clientes
-router.patch('/clients/update/:id', authToken, clientController.updateClient); // atualizar clientes
+router.get('/clients', authToken, clientController.getClient);
+router.get('/clients/:id', authToken, clientController.getClientById);
+router.post('/clients/post', authToken, clientController.postClient);
+router.patch('/clients/update/:id', authToken, clientController.updateClient);
 router.delete('/clients/:id', authToken, clientController.deleteClient);
 
 // parts route
