@@ -5,5 +5,5 @@ export interface VehicleModel {
     year: number,
     chassi: string,
     plate: string,
-    cliendId: number // FK -> referenciando cliente
+    clientId: number // FK -> referenciando cliente
 }

@@ -4,8 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login | Ponto 8</title>
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="icon" href="../img/logo8.png">
+  <!-- FIX: eram '../css/...' e '../img/...' — caminho errado, pois este
+       arquivo está na raiz do frontend, não dentro de /html. Isso fazia
+       o style.css nunca carregar (e as var(--black)/var(--yellow) do
+       <style> abaixo ficarem indefinidas). -->
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="img/logo8.png">
   <style>
     body {
       display: flex;
@@ -214,7 +218,11 @@
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    // PADRONIZAÇÃO: login agora usa a mesma camada api.js que o resto
+    // do app, em vez de um fetch() duplicado só desta página.
+    import { login } from './js/api.js';
+
     // Redirect if already logged in
     if (localStorage.getItem('token')) {
       window.location.replace('/html/home.html');
@@ -235,15 +243,9 @@
       btnSubmit.textContent = 'Aguarde...';
 
       try {
-        const res = await fetch('http://localhost:3333/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
+        const { data, ok } = await login(email, password);
 
-        const data = await res.json();
-
-        if (res.ok && data.accessToken) {
+        if (ok && data && data.accessToken) {
           localStorage.setItem('token', data.accessToken);
           if (data.refreshToken) {
             localStorage.setItem('refreshToken', data.refreshToken);

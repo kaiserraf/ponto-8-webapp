@@ -1,8 +1,8 @@
 import PDFDocument from 'pdfkit';
 import * as fs from 'fs';
 import * as path from 'path';
-import { findClientById } from '../repositories/clientData';
-import { findVehicleById } from '../repositories/vehicleData';
+import { getClientByIdService } from '../services/clientService';
+import { getVehicleByIdService } from '../services/vehicleService';
 import { findOSById, findOpByIdSo, findOlByIdSo } from '../repositories/osData';
 import { findPartById } from '../repositories/partsData';
 import { selectLaborById } from '../repositories/laborData';
@@ -41,8 +41,8 @@ export const gerarOsPdf = async (idOs: number): Promise<string> => {
 
     // 2. Busca cliente e veículo em paralelo
     const [cliente, veiculo] = await Promise.all([
-        findClientById(os.idClient),
-        findVehicleById(os.idVehicle)
+        getClientByIdService(os.idClient),
+        getVehicleByIdService(os.idVehicle)
     ]);
 
     if (!cliente) throw new Error(`Cliente ${os.idClient} não encontrado`);

@@ -31,7 +31,7 @@ export const insertVehicle = async (vehicle:VehicleModel) => {
             vehicle.year,
             vehicle.chassi,
             vehicle.plate,
-            vehicle.cliendId
+            vehicle.clientId
         ]
     );
     const v = result.rows[0];

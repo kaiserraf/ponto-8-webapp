@@ -17,12 +17,12 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mssql": "^9.1.11",
-    "@types/node": "^20.11.30",
+    "@types/node": "^26.1.2",
     "@types/pdfkit": "^0.17.6",
     "@types/pg": "^8.20.0",
     "tsup": "^8.0.2",
     "tsx": "^4.7.1",
-    "typescript": "^5.4.3"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

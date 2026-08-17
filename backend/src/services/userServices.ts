@@ -1,8 +1,8 @@
 import { UserModel } from '../Models/userModel';
 import * as ud from '../repositories/userData';
 import * as jwt from 'jsonwebtoken';
-import crypto, { randomInt } from 'crypto';
-import { hash, compare } from 'bcrypt';
+import * as crypt from '../utils/crypt';
+import { randomBytes } from 'node:crypto';
 
 const validJWTSecret = async () => {
     const jwtToken = process.env.JWT_SECRET;
@@ -12,8 +12,7 @@ const validJWTSecret = async () => {
 
 export const registerService = async (bodyValue:UserModel) => {
     const time = new Date();
-    const randomSalt = randomInt(10, 12);
-    const passwordHash = await hash(bodyValue.passwordHash, randomSalt);
+    const passwordHash = await crypt.hashPassword(bodyValue.passwordHash);
     const data = await ud.registerUser(bodyValue, time, passwordHash);
     if(!data) return null;
     return data;
@@ -25,11 +24,11 @@ export const loginService = async (email:string, password:string) => {
 
     const data = await ud.loginUser(email);
     if(!data) return null;
-    const isValidPassword = await compare(password, data.passwordHash)
+    const isValidPassword = await crypt.comparePassword(password, data.passwordHash);
     if(!isValidPassword) return null;
 
     const accessToken = jwt.sign({id: data.id}, secret, {expiresIn: '15m'});
-    const refreshToken = crypto.randomBytes(64).toString('hex');
+    const refreshToken = randomBytes(64).toString('hex');
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
@@ -48,7 +47,7 @@ export const refreshService = async (token:string) => {
     await ud.deleteRefreshToken(token);
 
     const newAccessToken = jwt.sign({id: stored.user_id}, secret, {expiresIn: '15m'});
-    const newRefreshToken =  crypto.randomBytes(64).toString('hex');
+    const newRefreshToken =  randomBytes(64).toString('hex');
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);

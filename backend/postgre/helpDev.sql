@@ -7,6 +7,7 @@ AND table_type='BASE TABLE';
 -- Select de tabelas 
 SELECT * FROM users ORDER BY id;
 SELECT * FROM vehicles ORDER BY id_vehicle;
+SELECT * FROM clients ORDER BY id;
 
 -- deleta todas as tabelas
 DROP TABLE vehicles CASCADE;

@@ -2,6 +2,13 @@
 //  api.js — Camada de acesso ao backend
 //  Todas as chamadas HTTP ficam aqui. As páginas HTML
 //  importam este arquivo e usam as funções exportadas.
+//
+//  PADRONIZAÇÃO: este arquivo absorveu o antigo osApi.js.
+//  Antes, metade dos endpoints de OS (insertOrderParts,
+//  deleteOrderParts, insertOrderLabor, deleteOrderLabor,
+//  generatePdf, getUsers) usava um request() duplicado
+//  sem retry automático de refresh token. Agora tudo passa
+//  pelo mesmo request(), com o mesmo comportamento.
 // =====================================================
 
 const BASE_URL = 'http://localhost:3333';
@@ -99,6 +106,34 @@ async function tryRefresh() {
 }
 
 // ============================================================
+//  AUTENTICAÇÃO  /login /refresh /logout
+// ============================================================
+
+/**
+ * Autentica o usuário. POST /login
+ * Não usa o request() genérico de propósito: um 401 aqui significa
+ * "credenciais inválidas", não "sessão expirada" — então não deve
+ * disparar o fluxo de refresh/redirect automático que request() faz
+ * para os demais endpoints autenticados.
+ */
+export async function login(email, password) {
+  try {
+    const res = await fetch(`${BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    let data = null;
+    const text = await res.text();
+    if (text) data = JSON.parse(text);
+    return { data, ok: res.ok, status: res.status };
+  } catch (err) {
+    console.error('[api] Erro de rede no login:', err);
+    return { data: null, ok: false, status: 0 };
+  }
+}
+
+// ============================================================
 //  CLIENTES  /clients
 // ============================================================
 
@@ -140,14 +175,44 @@ export const deleteLabor  = (id)         => request('DELETE', `/labor/${id}`);
 
 // ============================================================
 //  ORDENS DE SERVIÇO  /os
-//  FIX: movidas para cá (api.js) para terem retry de refresh token.
-//  O osApi.js continua existindo apenas para insertOrderParts/Labor,
-//  deleteOrderParts/Labor, generatePdf e getUsers.
 // ============================================================
 
-export const getOs       = ()            => request('GET',    '/os');
-export const getOsById   = (id)          => request('GET',    `/os/${id}`);
-export const createOs    = (body)        => request('POST',   '/os/post', body);
-export const updateOs    = (id, fields)  => request('PATCH',  `/os/update/${id}`, fields);
-export const updateOsPdfPath = (id, pdfPath) => request('PATCH', `/os/pdfPath/${id}`, { pdfPath });
-export const deleteOs    = (id)          => request('DELETE', `/os/${id}`);
+export const getOs           = ()             => request('GET',    '/os');
+export const getOsById       = (id)           => request('GET',    `/os/${id}`);
+export const createOs        = (body)         => request('POST',   '/os/post', body);
+export const updateOs        = (id, fields)   => request('PATCH',  `/os/update/${id}`, fields);
+export const updateOsPdfPath = (id, pdfPath)  => request('PATCH',  `/os/pdfPath/${id}`, { pdfPath });
+export const deleteOs        = (id)           => request('DELETE', `/os/${id}`);
+
+// ---------- Peças da OS ----------
+
+/** Adiciona peça na OS. POST /os/:id/parts */
+export const insertOrderParts = (idSo, body) =>
+  request('POST', `/os/${idSo}/parts`, body);
+
+/** Remove peça da OS. DELETE /os/:id/parts/:partId */
+export const deleteOrderParts = (idSo, idPart) =>
+  request('DELETE', `/os/${idSo}/parts/${idPart}`);
+
+// ---------- Serviços da OS ----------
+
+/** Adiciona serviço na OS. POST /os/:id/labor */
+export const insertOrderLabor = (idSo, body) =>
+  request('POST', `/os/${idSo}/labor`, body);
+
+/** Remove serviço da OS. DELETE /os/:id/labor/:laborId */
+export const deleteOrderLabor = (idSo, idLabor) =>
+  request('DELETE', `/os/${idSo}/labor/${idLabor}`);
+
+// ---------- PDF ----------
+
+/** Gera o PDF da OS. POST /os/:id/pdf */
+export const generatePdf = (idSo) =>
+  request('POST', `/os/${idSo}/pdf`);
+
+// ============================================================
+//  USUÁRIOS  /users
+// ============================================================
+
+/** Lista todos os usuários do sistema (mecânicos). GET /users */
+export const getUsers = () => request('GET', '/users');

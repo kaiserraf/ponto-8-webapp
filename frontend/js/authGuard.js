@@ -5,14 +5,17 @@
 //  de cada página protegida (home, clientes, veículos, peças, os, serviços).
 //
 //  Se não houver token salvo, redireciona imediatamente
-//  para /html/index.html sem carregar nada da página.
+//  para /index.html sem carregar nada da página.
 // =====================================================
 
 const token = localStorage.getItem('token');
 
 if (!token) {
   // Redireciona para a tela de login
-  window.location.replace('/html/index.html');
+  // FIX: era '/html/index.html' — esse caminho não existe (index.html
+  // fica na raiz do frontend, não dentro de /html), então o redirect
+  // resultava em 404 em vez de levar o usuário pro login.
+  window.location.replace('/index.html');
 }
 
 export const getToken = () => localStorage.getItem('token');
